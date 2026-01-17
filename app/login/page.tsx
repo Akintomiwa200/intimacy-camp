@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Heart, Mail, Lock } from "lucide-react";
 import { Header } from "@/src/components/layout/Header";
-import { Footer } from "@/src/components/layout/Footer";
+import Footer from "@/src/components/layout/Footer";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card";
