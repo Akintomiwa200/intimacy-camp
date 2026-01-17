@@ -1,9 +1,16 @@
+
+
+
+
 // User types
+export type UserRole = "admin" | "user";
+
 export interface User {
-    id: string;
-    email: string;
-    name: string;
-    createdAt: string;
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  createdAt: string;
 }
 
 // Auth types

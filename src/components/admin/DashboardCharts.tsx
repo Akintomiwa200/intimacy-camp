@@ -13,7 +13,9 @@ import {
     PieChart,
     Pie,
     Cell,
+    Legend, // 👈 ADD THIS
 } from "recharts";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card";
 
 interface ChartProps {
@@ -100,7 +102,7 @@ export function DashboardCharts({ registrationTrends, registrationStatus }: Char
                                 <Tooltip
                                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                                 />
-                                <legend verticalAlign="bottom" height={36} />
+                                <Legend verticalAlign="bottom" height={36} />
                             </PieChart>
                         </ResponsiveContainer>
                         <div className="flex justify-center gap-6 mt-4">

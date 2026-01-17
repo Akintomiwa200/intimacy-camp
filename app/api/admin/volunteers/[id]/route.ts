@@ -4,110 +4,113 @@ import Volunteer from "@/src/models/Volunteer";
 import { z } from "zod";
 
 const updateStatusSchema = z.object({
-    status: z.enum(["pending", "approved", "rejected"]),
+  status: z.enum(["pending", "approved", "rejected"]),
 });
 
+type Params = { id: string };
+
 export async function GET(
-    request: NextRequest,
-    { params }: { params: { id: string } }
+  request: NextRequest,
+  context: { params: Promise<Params> }
 ) {
-    try {
-        await connectDB();
+  const { id } = await context.params;
 
-        const volunteer = await Volunteer.findById(params.id);
+  try {
+    await connectDB();
 
-        if (!volunteer) {
-            return NextResponse.json(
-                { success: false, error: { message: "Volunteer not found" } },
-                { status: 404 }
-            );
-        }
+    const volunteer = await Volunteer.findById(id);
 
-        return NextResponse.json({
-            success: true,
-            data: volunteer,
-        });
-    } catch (error: any) {
-        console.error("Get volunteer error:", error);
-
-        return NextResponse.json(
-            { success: false, error: { message: "Failed to fetch volunteer" } },
-            { status: 500 }
-        );
+    if (!volunteer) {
+      return NextResponse.json(
+        { success: false, error: { message: "Volunteer not found" } },
+        { status: 404 }
+      );
     }
+
+    return NextResponse.json({ success: true, data: volunteer });
+  } catch (error) {
+    console.error("Get volunteer error:", error);
+    return NextResponse.json(
+      { success: false, error: { message: "Failed to fetch volunteer" } },
+      { status: 500 }
+    );
+  }
 }
 
 export async function PUT(
-    request: NextRequest,
-    { params }: { params: { id: string } }
+  request: NextRequest,
+  context: { params: Promise<Params> }
 ) {
-    try {
-        await connectDB();
+  const { id } = await context.params;
 
-        const body = await request.json();
-        const { status } = updateStatusSchema.parse(body);
+  try {
+    await connectDB();
 
-        const volunteer = await Volunteer.findByIdAndUpdate(
-            params.id,
-            { status },
-            { new: true }
-        );
+    const body = await request.json();
+    const { status } = updateStatusSchema.parse(body);
 
-        if (!volunteer) {
-            return NextResponse.json(
-                { success: false, error: { message: "Volunteer not found" } },
-                { status: 404 }
-            );
-        }
+    const volunteer = await Volunteer.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    );
 
-        return NextResponse.json({
-            success: true,
-            data: volunteer,
-            message: `Volunteer status updated to ${status}`,
-        });
-    } catch (error: any) {
-        console.error("Update volunteer error:", error);
-
-        if (error instanceof z.ZodError) {
-            return NextResponse.json(
-                { success: false, error: { message: "Invalid status" } },
-                { status: 400 }
-            );
-        }
-
-        return NextResponse.json(
-            { success: false, error: { message: "Failed to update volunteer" } },
-            { status: 500 }
-        );
+    if (!volunteer) {
+      return NextResponse.json(
+        { success: false, error: { message: "Volunteer not found" } },
+        { status: 404 }
+      );
     }
+
+    return NextResponse.json({
+      success: true,
+      data: volunteer,
+      message: `Volunteer status updated to ${status}`,
+    });
+  } catch (error) {
+    console.error("Update volunteer error:", error);
+
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: { message: "Invalid status" } },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(
+      { success: false, error: { message: "Failed to update volunteer" } },
+      { status: 500 }
+    );
+  }
 }
 
 export async function DELETE(
-    request: NextRequest,
-    { params }: { params: { id: string } }
+  request: NextRequest,
+  context: { params: Promise<Params> }
 ) {
-    try {
-        await connectDB();
+  const { id } = await context.params;
 
-        const volunteer = await Volunteer.findByIdAndDelete(params.id);
+  try {
+    await connectDB();
 
-        if (!volunteer) {
-            return NextResponse.json(
-                { success: false, error: { message: "Volunteer not found" } },
-                { status: 404 }
-            );
-        }
+    const volunteer = await Volunteer.findByIdAndDelete(id);
 
-        return NextResponse.json({
-            success: true,
-            message: "Volunteer deleted successfully",
-        });
-    } catch (error: any) {
-        console.error("Delete volunteer error:", error);
-
-        return NextResponse.json(
-            { success: false, error: { message: "Failed to delete volunteer" } },
-            { status: 500 }
-        );
+    if (!volunteer) {
+      return NextResponse.json(
+        { success: false, error: { message: "Volunteer not found" } },
+        { status: 404 }
+      );
     }
+
+    return NextResponse.json({
+      success: true,
+      message: "Volunteer deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete volunteer error:", error);
+    return NextResponse.json(
+      { success: false, error: { message: "Failed to delete volunteer" } },
+      { status: 500 }
+    );
+  }
 }

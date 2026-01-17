@@ -4,73 +4,77 @@ import Testimony from "@/src/models/Testimony";
 import { z } from "zod";
 
 const updateSchema = z.object({
-    isApproved: z.boolean().optional(),
-    isPublished: z.boolean().optional(),
+  isApproved: z.boolean().optional(),
+  isPublished: z.boolean().optional(),
 });
 
 export async function PUT(
-    request: NextRequest,
-    { params }: { params: { id: string } }
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
-    try {
-        await connectDB();
+  try {
+    const { id } = await context.params;
 
-        const body = await request.json();
-        const validatedData = updateSchema.parse(body);
+    await connectDB();
 
-        const testimony = await Testimony.findByIdAndUpdate(
-            params.id,
-            validatedData,
-            { new: true }
-        );
+    const body = await request.json();
+    const validatedData = updateSchema.parse(body);
 
-        if (!testimony) {
-            return NextResponse.json(
-                { success: false, error: { message: "Testimony not found" } },
-                { status: 404 }
-            );
-        }
+    const testimony = await Testimony.findByIdAndUpdate(
+      id,
+      validatedData,
+      { new: true }
+    );
 
-        return NextResponse.json({
-            success: true,
-            data: testimony,
-        });
-    } catch (error: any) {
-        console.error("Update testimony error:", error);
-
-        return NextResponse.json(
-            { success: false, error: { message: "Failed to update testimony" } },
-            { status: 500 }
-        );
+    if (!testimony) {
+      return NextResponse.json(
+        { success: false, error: { message: "Testimony not found" } },
+        { status: 404 }
+      );
     }
+
+    return NextResponse.json({
+      success: true,
+      data: testimony,
+    });
+  } catch (error) {
+    console.error("Update testimony error:", error);
+
+    return NextResponse.json(
+      { success: false, error: { message: "Failed to update testimony" } },
+      { status: 500 }
+    );
+  }
 }
 
 export async function DELETE(
-    request: NextRequest,
-    { params }: { params: { id: string } }
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
-    try {
-        await connectDB();
+  try {
+    const { id } = await context.params;
 
-        const testimony = await Testimony.findByIdAndDelete(params.id);
+    await connectDB();
 
-        if (!testimony) {
-            return NextResponse.json(
-                { success: false, error: { message: "Testimony not found" } },
-                { status: 404 }
-            );
-        }
+    const testimony = await Testimony.findByIdAndDelete(id);
 
-        return NextResponse.json({
-            success: true,
-            message: "Testimony deleted successfully",
-        });
-    } catch (error: any) {
-        console.error("Delete testimony error:", error);
-
-        return NextResponse.json(
-            { success: false, error: { message: "Failed to delete testimony" } },
-            { status: 500 }
-        );
+    if (!testimony) {
+      return NextResponse.json(
+        { success: false, error: { message: "Testimony not found" } },
+        { status: 404 }
+      );
     }
+
+    return NextResponse.json({
+      success: true,
+      message: "Testimony deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete testimony error:", error);
+
+    return NextResponse.json(
+      { success: false, error: { message: "Failed to delete testimony" } },
+      { status: 500 }
+    );
+  }
 }
