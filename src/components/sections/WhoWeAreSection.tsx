@@ -18,7 +18,7 @@ export function WhoWeAreSection() {
                 <div className="flex flex-col lg:flex-row gap-16">
                     {/* Text Area */}
                     <div className="lg:w-1/2">
-                        <div className="flex items-center gap-2 mb-4">
+                        <div className="flex ml-12 items-center gap-2 mb-4">
                             <div className="w-2 h-2 rounded-full bg-green-500" />
                             <span className="text-xs font-semibold tracking-widest text-gray-500 uppercase">
                                 Who We Are
@@ -48,23 +48,27 @@ export function WhoWeAreSection() {
                     </div>
 
                     {/* Image Area */}
-                    <div className="lg:w-1/2 relative">
-                        <div className="absolute top-0 right-0 max-w-sm text-sm text-gray-600 leading-relaxed mb-8 hidden lg:block">
-                            We are a global movement raising a passionate generation empowered to influence nations with the fire and truth of Jesus.
-                        </div>
-                        <motion.div
-                            initial={{ opacity: 0, x: 50 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            className="relative aspect-[4/3] rounded-[2rem] overflow-hidden shadow-2xl mt-8 lg:mt-24"
-                        >
-                            <Image
-                                src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80" // Crowd worshippers placeholder
-                                alt="Who We Are"
-                                fill
-                                className="object-cover"
-                            />
-                        </motion.div>
-                    </div>
+                   <div className="lg:w-1/2 relative group">
+    {/* Image Container */}
+    <motion.div
+        initial={{ opacity: 0, x: 50 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        className="relative aspect-[4/3] rounded-[2rem] overflow-hidden shadow-2xl mt-8 lg:mt-24"
+    >
+        <Image
+            src="/images/IMG-20260116-WA0104.jpg"
+            alt="Who We Are"
+            fill
+            className="object-cover"
+        />
+
+        {/* Tooltip Text at Top */}
+        <div className="absolute top-4 left-5/8 -translate-x-1/3 pxl-4 py-3 bg-gray-900/90 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none max-w-xs text-center shadow-lg">
+            We are a global movement raising a passionate generation empowered to influence nations with the fire and truth of Jesus.
+        </div>
+    </motion.div>
+</div>
+
                 </div>
             </div>
         </section>

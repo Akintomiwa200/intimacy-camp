@@ -27,42 +27,49 @@ export function VisionMissionSection() {
                 </div>
 
                 {/* Big Poster Image (Faces) */}
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    className="relative w-full aspect-[16/9] md:aspect-[21/9] rounded-3xl overflow-hidden shadow-2xl mb-24 border border-white/10"
-                >
-                    <Image
-                        src="https://images.unsplash.com/photo-1544427920-c49ccfb85579?auto=format&fit=crop&q=80" // Grid of faces placeholder
-                        alt="YMR Leaders"
-                        fill
-                        className="object-cover"
-                    />
-                    <div className="absolute inset-x-0 bottom-0 p-8 md:p-12 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-                        <div>
-                            <div className="text-green-500 font-bold mb-2">DECEMBER 26TH- 30TH, 2025</div>
-                            <div className="text-white text-2xl md:text-3xl font-bold">OLD AUDITORIUM,</div>
-                            <div className="text-white/80 text-xl font-light">REDEMPTION CITY OF GOD.</div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
-                                <span className="text-white font-bold text-lg">Y</span>
-                            </div>
-                            <div className="text-white font-bold leading-tight">
-                                YMR 2025<br />
-                                <span className="text-white/60 font-medium">The New Army</span>
-                            </div>
-                        </div>
-                    </div>
-                </motion.div>
+               <motion.div
+    initial={{ opacity: 0, scale: 0.95 }}
+    whileInView={{ opacity: 1, scale: 1 }}
+    className="relative w-full aspect-[16/9] md:aspect-[21/9] rounded-3xl overflow-hidden shadow-2xl mb-24 border border-white/10"
+>
+    <Image
+        src="/images/" // Crowd/worshippers image
+        alt="Intimacy Camp Participants"
+        fill
+        className="object-cover"
+    />
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+    {/* Info Overlay */}
+    <div className="absolute inset-x-0 bottom-0 p-8 md:p-12 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+        
+        {/* Event Details */}
+        <div>
+            <div className="text-green-500 font-bold mb-2">APRIL 5TH – 7TH, 2026</div>
+            <div className="text-white text-2xl md:text-3xl font-bold">INTIMACY CAMP,</div>
+            <div className="text-white/80 text-xl font-light">AGO-IWOWE, OGUN STATE, NIGERIA</div>
+        </div>
+
+        {/* Branding / Tagline */}
+        <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
+                <span className="text-white font-bold text-lg">I</span>
+            </div>
+            <div className="text-white font-bold leading-tight">
+                INTIMACY CAMP 2026<br />
+                <span className="text-white/60 font-medium">The Jacob Generation</span>
+            </div>
+        </div>
+    </div>
+</motion.div>
+
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 px-8 items-start">
                     {/* Text Column */}
                     <div>
                         <div className="mb-12">
                             <div className="flex items-center gap-4 mb-4">
                                 <div className="w-12 h-0.5 bg-green-500" />
-                                <h3 className="text-4xl font-bold text-white">YMR Vision</h3>
+                                <h3 className="text-4xl font-bold text-white">TIC Vision</h3>
                             </div>
                             <p className="text-gray-400 font-medium mb-6">Raising a Burning Generation</p>
                             <div className="pl-6 border-l-2 border-gray-800 italic text-gray-400 text-lg leading-relaxed">

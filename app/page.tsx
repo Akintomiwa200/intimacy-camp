@@ -1,5 +1,5 @@
 import { Header } from "@/src/components/layout/Header";
-import { Footer } from "@/src/components/layout/Footer";
+import Footer from "@/src/components/layout/Footer";
 import { HeroSection } from "@/src/components/sections/HeroSection";
 import { TheArmySection } from "@/src/components/sections/TheArmySection";
 import { WhoWeAreSection } from "@/src/components/sections/WhoWeAreSection";
@@ -7,7 +7,7 @@ import { VisionMissionSection } from "@/src/components/sections/VisionMissionSec
 import { InitiativesSection } from "@/src/components/sections/InitiativesSection";
 import { FeaturesSection } from "@/src/components/sections/FeaturesSection";
 import { TestimonialsSection } from "@/src/components/sections/TestimonialsSection";
-import { CTASection } from "@/src/components/sections/CTASection";
+// import { CTASection } from "@/src/components/sections/CTASection";
 
 export default function Home() {
   return (
@@ -20,7 +20,7 @@ export default function Home() {
       <InitiativesSection />
       <FeaturesSection />
       <TestimonialsSection />
-      <CTASection />
+      {/*<CTASection />*/}
       <Footer />
     </main>
   );

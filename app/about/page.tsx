@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Header } from "@/src/components/layout/Header";
-import { Footer } from "@/src/components/layout/Footer";
+import Footer from "@/src/components/layout/Footer";
 import { Card, CardContent } from "@/src/components/ui/card";
 import { Users, Heart, Target, Zap } from "lucide-react";
 import { useIntersectionObserver } from "@/src/hooks/useIntersectionObserver";

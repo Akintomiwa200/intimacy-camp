@@ -7,7 +7,7 @@ import Image from "next/image";
 export function TheArmySection() {
     return (
         <section className="py-20 bg-white overflow-hidden">
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto px-24">
                 <div className="text-center mb-16">
                     <div className="flex items-center justify-center gap-2 mb-4">
                         <div className="w-2 h-2 rounded-full bg-green-500" />
@@ -16,13 +16,13 @@ export function TheArmySection() {
                         </span>
                     </div>
                     <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
-                        Young Ministers Retreat
+                        Intimacy Camp 2026
                     </h2>
                     <h3 className="text-4xl md:text-5xl font-bold text-green-500">
-                        The New Army
+                        The Jacob Generation
                     </h3>
                     <p className="max-w-3xl mx-auto mt-6 text-gray-600 leading-relaxed">
-                        This December, a <span className="font-bold text-gray-900">New Army</span> is rising! From <span className="font-bold text-gray-900">December 26th – 30th, 2025</span>, at the <span className="font-bold text-gray-900">Old Auditorium, Redemption City of God</span>, thousands of young ministers will gather for an unforgettable encounter.
+                        This April, a <span className="font-bold text-gray-900">Jacob Generation</span> is rising! From <span className="font-bold text-gray-900">April 5th – 7th, 2026</span>, at <span className="font-bold text-gray-900">Ago-Iwoye, Ogun State, Nigeria</span>, thousands of young ministers will gather for an unforgettable encounter with divine destiny.
                     </p>
                 </div>
 
@@ -34,18 +34,18 @@ export function TheArmySection() {
                         className="md:col-span-5 relative group rounded-3xl overflow-hidden shadow-2xl min-h-[500px]"
                     >
                         <Image
-                            src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80" // Placeholder for the actual poster
-                            alt="The New Army Poster"
+                            src="/images/IMG-20260116-WA0109.jpg"
+                            alt="The Jacob Generation Poster"
                             fill
                             className="object-cover transition-transform duration-700 group-hover:scale-105"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent p-8 flex flex-col justify-end">
-                            <h4 className="text-white text-2xl font-bold mb-2">Young Ministers Retreat</h4>
+                            <h4 className="text-white text-2xl font-bold mb-2">Intimacy Camp</h4>
                             <p className="text-white/80 text-sm leading-relaxed">
-                                Convened by P. Daniel Olawande, this retreat is not just a meeting—it is a divine mobilization into destiny.
+                                Convened by Might Men of David, this retreat is a divine mobilization for those called to seize their inheritance and destiny.
                             </p>
                             <div className="mt-4 text-white/60 text-xs font-medium tracking-wider uppercase">
-                                Old Auditorium, Redemption City of God
+                                Ago-Iwoye, Ogun State, Nigeria
                             </div>
                         </div>
                     </motion.div>
@@ -60,9 +60,9 @@ export function TheArmySection() {
                             >
                                 <Zap className="w-8 h-8 text-green-500 mb-6" />
                                 <div>
-                                    <h4 className="text-white text-xl font-bold mb-3">Spiritual Renewal</h4>
+                                    <h4 className="text-white text-xl font-bold mb-3">Divine Encounter</h4>
                                     <p className="text-gray-400 text-sm leading-relaxed">
-                                        Five days of intense worship, teaching, and life-transforming encounters.
+                                        Three days of powerful worship, prophetic teaching, and destiny-defining encounters.
                                     </p>
                                 </div>
                             </motion.div>
@@ -76,9 +76,9 @@ export function TheArmySection() {
                             >
                                 <Shield className="w-8 h-8 text-green-600 mb-6" />
                                 <div>
-                                    <h4 className="text-gray-900 text-xl font-bold mb-3">Army Mobilization</h4>
+                                    <h4 className="text-gray-900 text-xl font-bold mb-3">Inheritance & Destiny</h4>
                                     <p className="text-gray-600 text-sm leading-relaxed">
-                                        Equipping young ministers to influence culture and advance God's kingdom.
+                                        Equipping the Jacob Generation to wrestle for their blessings and claim their divine inheritance.
                                     </p>
                                 </div>
                             </motion.div>
@@ -91,12 +91,13 @@ export function TheArmySection() {
                             transition={{ delay: 0.2 }}
                             className="flex-1 relative rounded-3xl overflow-hidden shadow-lg min-h-[250px]"
                         >
-                            <Image
-                                src="https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&q=80"
-                                alt="YMR Crowd"
-                                fill
-                                className="object-cover"
-                            />
+                          <Image
+    src="/images/IMG-20260116-WA0101.jpg" // Use root-relative path from public/
+    alt="YMR Crowd"
+    fill
+    className="object-cover"
+/>
+
                         </motion.div>
                     </div>
                 </div>

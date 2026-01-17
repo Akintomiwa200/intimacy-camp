@@ -1,4 +1,4 @@
-export const APP_NAME = "Young Ministers Retreat";
+export const APP_NAME = "Intimacy Camp";
 export const APP_DESCRIPTION = "Setting a generation on fire for Jesus - equipping young leaders to passionately pursue their faith";
 
 export const ROUTES = {
