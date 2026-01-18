@@ -21,29 +21,30 @@ const HERO_IMAGES = [
 
 const STATS = [
     {
-        value: "6+",
+        value: "1",
         label: "Nations Reached",
         icon: "🌍",
         bgColor: "bg-teal-900/80",
     },
     {
-        value: "17K+",
+        value: "99+",
         label: "Souls Saved",
         icon: "💚",
         bgColor: "bg-amber-100/90",
-        textColor: "text-gray-900",
+        textColor: "text-gray-400",
     },
     {
-        value: "1K+",
+        value: "20+",
         label: "Volunteers",
         icon: "👥",
         bgColor: "bg-teal-900/80",
     },
     {
-        value: "16K+",
+        value: "100+",
         label: "People on Fire",
         icon: "🔥",
         bgColor: "bg-teal-900/80",
+        textColor: "text-gray-400",
     },
 ];
 
@@ -81,7 +82,7 @@ export function HeroSection() {
                     >
                         <Image
                             src={HERO_IMAGES[currentImageIndex]}
-                            alt="Young Ministers Retreat"
+                            alt="The Intimacy Camp 2026"
                             fill
                             className="object-cover"
                             priority
@@ -108,23 +109,23 @@ export function HeroSection() {
     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/20 backdrop-blur-sm border border-green-500/30">
         <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
         <span className="text-sm font-medium text-green-300">
-            INTIMACY CAMP
+            The Intimacy Camp 2026
         </span>
     </div>
 
     {/* Main Heading */}
     <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
-        Setting A Generation
-        <br />
-        <span className="text-green-400">On Fire</span> For Jesus
+          Raising a   
+        
+        <span className="text-green-400"> Pure Breed</span>
+        <br /> Of Mighty Men.
     </h1>
 
     {/* Description */}
     <p className="text-lg md:text-xl text-gray-200 max-w-2xl">
-        Intimacy Camp is a transformative retreat for young believers, dedicated to 
-        fostering a deep, personal connection with God. Here, youth are empowered to 
-        embrace their calling, grow in spiritual intimacy, and ignite passion that 
-        impacts their communities and beyond.
+        The Intimacy Camp 2026 is a transformative camp meeting, for renewal and refreshing. 
+    We have a mandate to raise a pure breed of mighty men, who will take the WISDOM and POWER of God into the Nations, to reshape every sphere of human influence, bringing then in conformity with the will of God. 
+     At The Intimacy Camp, men are empowered with the wisdom and power of God, to realize their ordination, embrace their calling, grow in intimacy and be ignited with a burning passion that will translate into societal transformation.
     </p>
 
     {/* CTA Button */}

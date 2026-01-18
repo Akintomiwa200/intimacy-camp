@@ -20,40 +20,53 @@ export const API_ENDPOINTS = {
         CONFIRM: "/api/registration/confirm",
     },
 } as const;
-
 export const FEATURES = [
     {
-        title: "Deep Connection",
-        description: "Learn to build authentic connections through guided exercises and workshops",
-        icon: "Heart",
-    },
-    {
-        title: "Expert Guidance",
-        description: "Work with certified relationship coaches and intimacy experts",
-        icon: "Users",
-    },
-    {
-        title: "Safe Space",
-        description: "Experience growth in a supportive, judgment-free environment",
-        icon: "Shield",
-    },
-    {
-        title: "Transformative Practices",
-        description: "Discover powerful techniques for emotional and physical intimacy",
+        title: "Prophetic Impartation",
+        description: "Receive personalized prophecies and spiritual gifts activation through seasoned ministers",
         icon: "Sparkles",
     },
     {
-        title: "Community Support",
-        description: "Connect with like-minded individuals on the same journey",
-        icon: "MessageCircle",
+        title: "Powerful Worship",
+        description: "Experience God's presence in an atmosphere of anointed worship and praise",
+        icon: "Music",
     },
     {
-        title: "Lasting Change",
-        description: "Take home practical tools for sustained relationship growth",
-        icon: "TrendingUp",
+        title: "Deep Prayer Life",
+        description: "Learn effective prayer strategies and intercession for breakthrough",
+        icon: "Pray",
+    },
+    {
+        title: "Biblical Teaching",
+        description: "Sound doctrine and practical Word-based teachings for spiritual growth",
+        icon: "BookOpen",
+    },
+    {
+        title: "Healing Ministry",
+        description: "Experience physical, emotional, and spiritual healing through God's power",
+        icon: "Heart",
+    },
+    {
+        title: "Kingdom Networking",
+        description: "Connect with like-minded believers and ministry leaders for partnership",
+        icon: "Users",
+    },
+    {
+        title: "Deliverance Sessions",
+        description: "Freedom from spiritual bondage and demonic oppression",
+        icon: "Shield",
+    },
+    {
+        title: "Holy Spirit Guidance",
+        description: "Learn to be led by the Spirit in all areas of life",
+        icon: "Wind",
+    },
+    {
+        title: "Spiritual Discipline",
+        description: "Training in fasting, meditation, and other spiritual disciplines",
+        icon: "Target",
     },
 ] as const;
-
 export const TESTIMONIALS = [
     {
         name: "Sarah & Michael",

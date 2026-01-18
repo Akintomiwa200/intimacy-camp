@@ -16,13 +16,17 @@ export function TheArmySection() {
                         </span>
                     </div>
                     <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
-                        Intimacy Camp 2026
+                       The Intimacy Camp 2026
                     </h2>
                     <h3 className="text-4xl md:text-5xl font-bold text-green-500">
                         The Jacob Generation
                     </h3>
+                    <h3 className="text-xl md:text-2xl font-bold text-gray-600">
+                        Psalms 24:6
+                    </h3>
                     <p className="max-w-3xl mx-auto mt-6 text-gray-600 leading-relaxed">
-                        This April, a <span className="font-bold text-gray-900">Jacob Generation</span> is rising! From <span className="font-bold text-gray-900">April 5th – 7th, 2026</span>, at <span className="font-bold text-gray-900">Ago-Iwoye, Ogun State, Nigeria</span>, thousands of young ministers will gather for an unforgettable encounter with divine destiny.
+                        This April, a <span className="font-bold text-gray-900">Jacob Generation</span> is rising! From <span className="font-bold text-gray-900">April 5th – 7th, 2026</span>, in <span className="font-bold text-gray-900">Ago-Iwoye, Ogun State, Nigeria</span>, various hungry hearts will gather for an unforgettable encounter with God. 
+ We are that generation that will seek the face of God, and not just the work of His hands.
                     </p>
                 </div>
 
@@ -40,9 +44,9 @@ export function TheArmySection() {
                             className="object-cover transition-transform duration-700 group-hover:scale-105"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent p-8 flex flex-col justify-end">
-                            <h4 className="text-white text-2xl font-bold mb-2">Intimacy Camp</h4>
-                            <p className="text-white/80 text-sm leading-relaxed">
-                                Convened by Might Men of David, this retreat is a divine mobilization for those called to seize their inheritance and destiny.
+                            <h4 className="text-white text-2xl font-bold mb-2">The Intimacy Camp</h4>
+                             <p className="text-white/80 text-sm leading-relaxed">
+                                Convened by The Mighty Men of David, this camp meeting is a divine mobilization for those who will be bearing the torch of revival in the coming move of God.
                             </p>
                             <div className="mt-4 text-white/60 text-xs font-medium tracking-wider uppercase">
                                 Ago-Iwoye, Ogun State, Nigeria
@@ -62,7 +66,7 @@ export function TheArmySection() {
                                 <div>
                                     <h4 className="text-white text-xl font-bold mb-3">Divine Encounter</h4>
                                     <p className="text-gray-400 text-sm leading-relaxed">
-                                        Three days of powerful worship, prophetic teaching, and destiny-defining encounters.
+                                        Three days of powerful worship, prophetic teaching, heartfelt prayers, and destiny-defining encounters.
                                     </p>
                                 </div>
                             </motion.div>
@@ -76,9 +80,9 @@ export function TheArmySection() {
                             >
                                 <Shield className="w-8 h-8 text-green-600 mb-6" />
                                 <div>
-                                    <h4 className="text-gray-900 text-xl font-bold mb-3">Inheritance & Destiny</h4>
+                                    <h4 className="text-gray-900 text-xl font-bold mb-3">Psalms 24:6</h4>
                                     <p className="text-gray-600 text-sm leading-relaxed">
-                                        Equipping the Jacob Generation to wrestle for their blessings and claim their divine inheritance.
+                                        This is the generation of them that seek him, that seek thy face, O Jacob. Selah.
                                     </p>
                                 </div>
                             </motion.div>

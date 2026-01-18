@@ -8,7 +8,8 @@ const ITEMS = [
     { title: "Raising Kingdom Leaders", icon: Users, active: true },
     { title: "Igniting Revival Fire", icon: Flame, active: false },
     { title: "Discipleship & Mentorship", icon: BookOpen, active: false },
-    { title: "Activating Purpose", icon: Target, active: false },
+    { title: "Capacity Building ", icon: Target, active: false },
+     { title: "Divine Encounter ", icon: Target, active: false },
 ];
 
 export function WhoWeAreSection() {
@@ -25,7 +26,7 @@ export function WhoWeAreSection() {
                             </span>
                         </div>
                         <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8 leading-tight">
-                            Igniting A <span className="text-green-600">Burning Generation</span> On Fire For Jesus
+                           THE <span className="text-green-600">MIGHTY MEN </span> OF DAVID
                         </h2>
 
                         <div className="grid grid-cols-1 gap-4">

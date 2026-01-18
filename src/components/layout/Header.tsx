@@ -49,7 +49,7 @@ export function Header() {
     {/* Logo Image */}
     <div className="relative w-12 h-12">
         <Image
-            src="/logo.png" // <-- your logo file
+            src="/images/20230803_194307_0000.png" // <-- your logo file
             alt="Intimacy Camp Logo"
             fill
             className="object-contain"
@@ -63,7 +63,7 @@ export function Header() {
             isScrolled ? "text-gray-900 dark:text-white" : "text-white"
         )}
     >
-        Intimacy Camp
+        The Mighty Men Of David
     </span>
 </Link>
 
