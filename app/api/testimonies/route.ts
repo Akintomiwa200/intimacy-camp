@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "@/src/lib/mongodb";
+import { connectToDatabase } from "@/src/lib/mongodb";
 import Testimony from "@/src/models/Testimony";
 import { z } from "zod";
 
@@ -11,7 +11,7 @@ const testimonySchema = z.object({
 
 export async function POST(request: NextRequest) {
     try {
-        await connectDB();
+        await connectToDatabase();
 
         const body = await request.json();
         const validatedData = testimonySchema.parse(body);
@@ -34,7 +34,13 @@ export async function POST(request: NextRequest) {
 
         if (error instanceof z.ZodError) {
             return NextResponse.json(
-                { success: false, error: { message: "Invalid input data", details: error.errors } },
+                {
+                    success: false,
+                    error: {
+                        message: "Invalid input data",
+                        details: error.errors,
+                    },
+                },
                 { status: 400 }
             );
         }
@@ -48,14 +54,15 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
     try {
-        await connectDB();
+        await connectToDatabase();
 
         const { searchParams } = new URL(request.url);
         const published = searchParams.get("published");
 
-        const query = published === "true"
-            ? { isPublished: true, isApproved: true }
-            : {};
+        const query =
+            published === "true"
+                ? { isPublished: true, isApproved: true }
+                : {};
 
         const testimonies = await Testimony.find(query)
             .sort({ createdAt: -1 })

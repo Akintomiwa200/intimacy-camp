@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "@/src/lib/mongodb";
+import { connectToDatabase } from "@/src/lib/mongodb";
 import User from "@/src/models/User";
 import { hashPassword, generateToken } from "@/src/lib/auth";
 import { z } from "zod";
@@ -13,7 +13,7 @@ const registerSchema = z.object({
 
 export async function POST(request: NextRequest) {
     try {
-        await connectDB();
+        await connectToDatabase();
 
         const body = await request.json();
         const validatedData = registerSchema.parse(body);
@@ -62,7 +62,13 @@ export async function POST(request: NextRequest) {
 
         if (error instanceof z.ZodError) {
             return NextResponse.json(
-                { success: false, error: { message: "Invalid input data", details: error.errors } },
+                {
+                    success: false,
+                    error: {
+                        message: "Invalid input data",
+                        details: error.errors,
+                    },
+                },
                 { status: 400 }
             );
         }

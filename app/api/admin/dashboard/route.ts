@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "@/src/lib/mongodb";
+import { connectToDatabase } from "@/src/lib/mongodb";
 import Registration from "@/src/models/Registration";
 import Volunteer from "@/src/models/Volunteer";
 import User from "@/src/models/User";
 
 export async function GET(request: NextRequest) {
     try {
-        await connectDB();
+        await connectToDatabase();
 
         // Get all registrations
         const registrations = await Registration.find({})
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
             .sort({ createdAt: -1 })
             .lean();
 
-        // Get all users
+        // Get all users (exclude passwords)
         const users = await User.find({})
             .select("-password")
             .sort({ createdAt: -1 })
@@ -32,7 +32,9 @@ export async function GET(request: NextRequest) {
 
             totalVolunteers: volunteers.length,
             confirmedVolunteers: volunteers.filter(v => v.isConfirmed).length,
-            pendingVolunteers: volunteers.filter(v => !v.isConfirmed && v.status === "pending").length,
+            pendingVolunteers: volunteers.filter(
+                v => !v.isConfirmed && v.status === "pending"
+            ).length,
             approvedVolunteers: volunteers.filter(v => v.status === "approved").length,
             rejectedVolunteers: volunteers.filter(v => v.status === "rejected").length,
 
@@ -42,25 +44,28 @@ export async function GET(request: NextRequest) {
             admins: users.filter(u => u.role === "admin").length,
         };
 
-        // Calculate registration trends (last 7 days)
+        // Registration trends (last 7 days)
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
         const trends = await Registration.aggregate([
             {
                 $match: {
-                    createdAt: { $gte: sevenDaysAgo }
-                }
+                    createdAt: { $gte: sevenDaysAgo },
+                },
             },
             {
                 $group: {
-                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-                    count: { $sum: 1 }
-                }
+                    _id: {
+                        $dateToString: {
+                            format: "%Y-%m-%d",
+                            date: "$createdAt",
+                        },
+                    },
+                    count: { $sum: 1 },
+                },
             },
-            {
-                $sort: { _id: 1 }
-            }
+            { $sort: { _id: 1 } },
         ]);
 
         return NextResponse.json({
@@ -73,7 +78,7 @@ export async function GET(request: NextRequest) {
                 registrationTrends: trends,
             },
         });
-    } catch (error: any) {
+    } catch (error) {
         console.error("Admin dashboard error:", error);
 
         return NextResponse.json(

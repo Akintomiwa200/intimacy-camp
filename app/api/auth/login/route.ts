@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "@/src/lib/mongodb";
+import { connectToDatabase } from "@/src/lib/mongodb";
 import User from "@/src/models/User";
 import { comparePassword, generateToken } from "@/src/lib/auth";
 import { z } from "zod";
@@ -11,13 +11,16 @@ const loginSchema = z.object({
 
 export async function POST(request: NextRequest) {
     try {
-        await connectDB();
+        await connectToDatabase();
 
         const body = await request.json();
         const validatedData = loginSchema.parse(body);
 
-        // Special admin login
-        if (validatedData.email === "admin@user.com" && validatedData.password === "admin") {
+        // ⚠️ Special admin login (hardcoded)
+        if (
+            validatedData.email === "admin@user.com" &&
+            validatedData.password === "admin"
+        ) {
             const token = generateToken({
                 userId: "admin",
                 email: "admin@user.com",
@@ -48,7 +51,11 @@ export async function POST(request: NextRequest) {
         }
 
         // Verify password
-        const isPasswordValid = await comparePassword(validatedData.password, user.password);
+        const isPasswordValid = await comparePassword(
+            validatedData.password,
+            user.password
+        );
+
         if (!isPasswordValid) {
             return NextResponse.json(
                 { success: false, error: { message: "Invalid credentials" } },

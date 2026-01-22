@@ -1,0 +1,377 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { connectToDatabase } from '@/src/lib/mongodb';
+import { sendConfirmationEmail } from '@/src/lib/email';
+import { isValidEmail } from '@/src/lib/utils';
+import bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
+import mongoose from 'mongoose';
+
+// Validation schemas
+const participantSchema = {
+  firstName: { type: String, required: true, minlength: 2, maxlength: 50 },
+  lastName: { type: String, required: true, minlength: 2, maxlength: 50 },
+  email: { type: String, required: true, unique: true },
+  phone: { type: String, required: true },
+  address: { type: String, required: true, maxlength: 500 },
+  gender: { type: String, required: true, enum: ['male', 'female'] },
+  maritalStatus: { type: String, required: true, enum: ['single', 'engaged', 'married'] },
+  isLeader: { type: String, required: true, enum: ['yes', 'no'] },
+  ministry: { 
+  type: String, 
+  required: function(this: any) { 
+    return this.isLeader === 'yes'; 
+  } 
+},
+customMinistry: { 
+  type: String, 
+  required: function(this: any) { 
+    return this.isLeader === 'yes' && this.ministry === 'other'; 
+  } 
+},
+
+  type: { type: String, default: 'participant', enum: ['participant', 'volunteer'] },
+  confirmationToken: { type: String, required: true },
+  confirmationTokenExpires: { type: Date, required: true },
+  registrationCode: { type: String, required: true, unique: true },
+  isConfirmed: { type: Boolean, default: false },
+  emailSent: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now },
+};
+
+const volunteerSchema = {
+  ...participantSchema,
+  departments: { 
+    type: [String], 
+    required: true, 
+    validate: {
+      validator: function(v: string[]) {
+        return v.length > 0 && v.length <= 2;
+      },
+      message: 'Please select 1-2 departments'
+    }
+  },
+  type: { type: String, default: 'volunteer' },
+};
+
+// MongoDB models
+let Participant: any;
+let Volunteer: any;
+
+async function getModels() {
+  await connectToDatabase();
+  
+  if (!Participant) {
+    const participantSchemaObj = new mongoose.Schema(participantSchema);
+    participantSchemaObj.index({ email: 1 }, { unique: true });
+    participantSchemaObj.index({ registrationCode: 1 }, { unique: true });
+    participantSchemaObj.index({ confirmationToken: 1 });
+    participantSchemaObj.index({ createdAt: 1 });
+    Participant = mongoose.models.Participant || mongoose.model('Participant', participantSchemaObj);
+  }
+  
+  if (!Volunteer) {
+    const volunteerSchemaObj = new mongoose.Schema(volunteerSchema);
+    volunteerSchemaObj.index({ email: 1 }, { unique: true });
+    volunteerSchemaObj.index({ registrationCode: 1 }, { unique: true });
+    volunteerSchemaObj.index({ confirmationToken: 1 });
+    volunteerSchemaObj.index({ createdAt: 1 });
+    Volunteer = mongoose.models.Volunteer || mongoose.model('Volunteer', volunteerSchemaObj);
+  }
+  
+  return { Participant, Volunteer };
+}
+
+// Helper functions
+function generateRegistrationCode(type: 'participant' | 'volunteer' = 'participant'): string {
+  const prefix = type === 'volunteer' ? 'VOL' : 'PAR';
+  const timestamp = Date.now().toString().slice(-6);
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `${prefix}-${timestamp}-${random}`;
+}
+
+function validateParticipantData(data: any): { isValid: boolean; errors: string[] } {
+  const errors: string[] = [];
+
+  // Required fields
+  const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'address', 'gender', 'maritalStatus', 'isLeader'];
+requiredFields.forEach(field => {
+  if (!String(data[field] ?? '').trim()) {
+    errors.push(`${field} is required`);
+  }
+});
+
+
+  // Email validation
+  if (data.email && !isValidEmail(data.email)) {
+    errors.push('Invalid email format');
+  }
+
+  // Phone validation (basic)
+  if (data.phone && !/^[\d\s\-\+\(\)]{10,20}$/.test(data.phone)) {
+    errors.push('Invalid phone number format');
+  }
+
+  // If leader, ministry is required
+  if (data.isLeader === 'yes') {
+    if (!data.ministry) {
+      errors.push('Ministry is required for leaders');
+    }
+    if (data.ministry === 'other' && !data.customMinistry?.trim()) {
+      errors.push('Custom ministry name is required when selecting "other"');
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
+function validateVolunteerData(data: any): { isValid: boolean; errors: string[] } {
+  const participantValidation = validateParticipantData(data);
+  if (!participantValidation.isValid) {
+    return participantValidation;
+  }
+
+  const errors = [...participantValidation.errors];
+
+  // Departments validation
+  if (!data.departments || !Array.isArray(data.departments) || data.departments.length === 0) {
+    errors.push('At least one department must be selected');
+  } else if (data.departments.length > 2) {
+    errors.push('Maximum 2 departments can be selected');
+  }
+
+  // Validate department IDs
+  const validDepartments = ['media', 'protocol', 'logistics', 'welfare', 'technical', 'security', 'registration', 'prayer', 'creative', 'medical'];
+  data.departments?.forEach((dept: string) => {
+    if (!validDepartments.includes(dept)) {
+      errors.push(`Invalid department: ${dept}`);
+    }
+  });
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { type = 'participant', ...data } = body;
+
+    console.log('Registration attempt:', { type, email: data.email });
+
+    // Validate request body
+    if (!type || !['participant', 'volunteer'].includes(type)) {
+      return NextResponse.json(
+        { error: 'Invalid registration type. Must be "participant" or "volunteer"' },
+        { status: 400 }
+      );
+    }
+
+    // Validate data based on type
+    const validation = type === 'volunteer' 
+      ? validateVolunteerData(data)
+      : validateParticipantData(data);
+
+    if (!validation.isValid) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: validation.errors },
+        { status: 400 }
+      );
+    }
+
+    // Get models
+    const models = await getModels();
+    const Model = type === 'volunteer' ? models.Volunteer : models.Participant;
+
+    // Check if user already exists
+    const existingUser = await Model.findOne({ email: data.email });
+    if (existingUser) {
+      return NextResponse.json(
+        { error: 'Email already registered' },
+        { status: 409 }
+      );
+    }
+
+    // Generate registration data
+    const confirmationToken = uuidv4();
+    const confirmationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const registrationCode = generateRegistrationCode(type);
+
+    // Prepare user data
+    const userData = {
+      ...data,
+      type,
+      confirmationToken,
+      confirmationTokenExpires,
+      registrationCode,
+      isConfirmed: false,
+      emailSent: false,
+      createdAt: new Date(),
+    };
+
+    // Create user in database
+    const user = new Model(userData);
+    await user.save();
+
+    console.log('User saved to database:', { id: user._id, email: user.email, type });
+
+    // Send confirmation email
+    try {
+      await sendConfirmationEmail(
+        user.email,
+        `${user.firstName} ${user.lastName}`,
+        user.registrationCode,
+        user.confirmationToken,
+        type as 'participant' | 'volunteer'
+      );
+
+      // Update email sent status
+      user.emailSent = true;
+      await user.save();
+
+      console.log('Confirmation email sent to:', user.email);
+    } catch (emailError) {
+      console.error('Failed to send confirmation email:', emailError);
+      // Don't fail the registration if email fails, but log it
+      // The user can request a resend later
+    }
+
+    // Return success response
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Registration successful. Please check your email to confirm your registration.',
+        data: {
+          id: user._id,
+          name: `${user.firstName} ${user.lastName}`,
+          email: user.email,
+          type: user.type,
+          registrationCode: user.registrationCode,
+          confirmationSent: user.emailSent,
+        },
+      },
+      { status: 201 }
+    );
+
+  } catch (error: any) {
+    console.error('Registration error:', error);
+
+    // Handle specific MongoDB errors
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const message = field === 'email' 
+        ? 'Email already registered'
+        : field === 'registrationCode'
+        ? 'Registration code conflict. Please try again.'
+        : 'Duplicate key error';
+      
+      return NextResponse.json(
+        { error: message },
+        { status: 409 }
+      );
+    }
+
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map((err: any) => err.message);
+      return NextResponse.json(
+        { error: 'Validation failed', details: errors },
+        { status: 400 }
+      );
+    }
+
+    // Generic error response
+    return NextResponse.json(
+      { error: 'Internal server error. Please try again later.' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const email = searchParams.get('email');
+    const registrationCode = searchParams.get('code');
+    const type = searchParams.get('type') as 'participant' | 'volunteer' || 'participant';
+
+    // Get models
+    const models = await getModels();
+    const Model = type === 'volunteer' ? models.Volunteer : models.Participant;
+
+    // Check if email exists
+    if (email) {
+      const user = await Model.findOne({ email }).select('-confirmationToken -__v');
+      if (!user) {
+        return NextResponse.json(
+          { exists: false },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json({
+        exists: true,
+        data: {
+          id: user._id,
+          name: `${user.firstName} ${user.lastName}`,
+          email: user.email,
+          type: user.type,
+          registrationCode: user.registrationCode,
+          isConfirmed: user.isConfirmed,
+          createdAt: user.createdAt,
+        }
+      });
+    }
+
+    // Check registration code
+    if (registrationCode) {
+      const user = await Model.findOne({ registrationCode }).select('-confirmationToken -__v');
+      if (!user) {
+        return NextResponse.json(
+          { exists: false },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json({
+        exists: true,
+        data: {
+          id: user._id,
+          name: `${user.firstName} ${user.lastName}`,
+          email: user.email,
+          type: user.type,
+          isConfirmed: user.isConfirmed,
+          createdAt: user.createdAt,
+        }
+      });
+    }
+
+    return NextResponse.json(
+      { error: 'Please provide email or registration code parameter' },
+      { status: 400 }
+    );
+
+  } catch (error) {
+    console.error('GET registration error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// OPTIONS method for CORS
+export async function OPTIONS() {
+  return NextResponse.json(
+    {},
+    {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    }
+  );
+}
