@@ -6,78 +6,11 @@ import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import mongoose from 'mongoose';
 
-// Validation schemas
-const participantSchema = {
-  firstName: { type: String, required: true, minlength: 2, maxlength: 50 },
-  lastName: { type: String, required: true, minlength: 2, maxlength: 50 },
-  email: { type: String, required: true, unique: true },
-  phone: { type: String, required: true },
-  address: { type: String, required: true, maxlength: 500 },
-  gender: { type: String, required: true, enum: ['male', 'female'] },
-  maritalStatus: { type: String, required: true, enum: ['single', 'engaged', 'married'] },
-  isLeader: { type: String, required: true, enum: ['yes', 'no'] },
-  ministry: { 
-  type: String, 
-  required: function(this: any) { 
-    return this.isLeader === 'yes'; 
-  } 
-},
-customMinistry: { 
-  type: String, 
-  required: function(this: any) { 
-    return this.isLeader === 'yes' && this.ministry === 'other'; 
-  } 
-},
-
-  type: { type: String, default: 'participant', enum: ['participant', 'volunteer'] },
-  confirmationToken: { type: String, required: true },
-  confirmationTokenExpires: { type: Date, required: true },
-  registrationCode: { type: String, required: true, unique: true },
-  isConfirmed: { type: Boolean, default: false },
-  emailSent: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now },
-};
-
-const volunteerSchema = {
-  ...participantSchema,
-  departments: { 
-    type: [String], 
-    required: true, 
-    validate: {
-      validator: function(v: string[]) {
-        return v.length > 0 && v.length <= 2;
-      },
-      message: 'Please select 1-2 departments'
-    }
-  },
-  type: { type: String, default: 'volunteer' },
-};
-
-// MongoDB models
-let Participant: any;
-let Volunteer: any;
+import Participant from '@/src/models/Participant';
+import Volunteer from '@/src/models/Volunteer';
 
 async function getModels() {
   await connectToDatabase();
-  
-  if (!Participant) {
-    const participantSchemaObj = new mongoose.Schema(participantSchema);
-    participantSchemaObj.index({ email: 1 }, { unique: true });
-    participantSchemaObj.index({ registrationCode: 1 }, { unique: true });
-    participantSchemaObj.index({ confirmationToken: 1 });
-    participantSchemaObj.index({ createdAt: 1 });
-    Participant = mongoose.models.Participant || mongoose.model('Participant', participantSchemaObj);
-  }
-  
-  if (!Volunteer) {
-    const volunteerSchemaObj = new mongoose.Schema(volunteerSchema);
-    volunteerSchemaObj.index({ email: 1 }, { unique: true });
-    volunteerSchemaObj.index({ registrationCode: 1 }, { unique: true });
-    volunteerSchemaObj.index({ confirmationToken: 1 });
-    volunteerSchemaObj.index({ createdAt: 1 });
-    Volunteer = mongoose.models.Volunteer || mongoose.model('Volunteer', volunteerSchemaObj);
-  }
-  
   return { Participant, Volunteer };
 }
 
@@ -94,12 +27,11 @@ function validateParticipantData(data: any): { isValid: boolean; errors: string[
 
   // Required fields
   const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'address', 'gender', 'maritalStatus', 'isLeader'];
-requiredFields.forEach(field => {
-  if (!String(data[field] ?? '').trim()) {
-    errors.push(`${field} is required`);
-  }
-});
-
+  requiredFields.forEach(field => {
+    if (!String(data[field] ?? '').trim()) {
+      errors.push(`${field} is required`);
+    }
+  });
 
   // Email validation
   if (data.email && !isValidEmail(data.email)) {
@@ -172,7 +104,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate data based on type
-    const validation = type === 'volunteer' 
+    const validation = type === 'volunteer'
       ? validateVolunteerData(data)
       : validateParticipantData(data);
 
@@ -196,36 +128,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate registration data
-    const confirmationToken = uuidv4();
-    const confirmationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    // Generate registration data - NO TOKEN NEEDED
     const registrationCode = generateRegistrationCode(type);
 
-    // Prepare user data
+    // Prepare user data - AUTO CONFIRMED
     const userData = {
       ...data,
       type,
-      confirmationToken,
-      confirmationTokenExpires,
       registrationCode,
-      isConfirmed: false,
+      isConfirmed: true, // AUTO CONFIRMED
       emailSent: false,
       createdAt: new Date(),
+      // Don't include confirmationToken or confirmationTokenExpires
     };
 
     // Create user in database
     const user = new Model(userData);
     await user.save();
 
-    console.log('User saved to database:', { id: user._id, email: user.email, type });
+    console.log('User saved to database (auto-confirmed):', {
+      id: user._id,
+      email: user.email,
+      type,
+      isConfirmed: true
+    });
 
-    // Send confirmation email
+    // Send registration success email
     try {
       await sendConfirmationEmail(
         user.email,
         `${user.firstName} ${user.lastName}`,
         user.registrationCode,
-        user.confirmationToken,
+        "", // No token needed
         type as 'participant' | 'volunteer'
       );
 
@@ -233,25 +167,25 @@ export async function POST(request: NextRequest) {
       user.emailSent = true;
       await user.save();
 
-      console.log('Confirmation email sent to:', user.email);
+      console.log('Registration success email sent to:', user.email);
     } catch (emailError) {
-      console.error('Failed to send confirmation email:', emailError);
-      // Don't fail the registration if email fails, but log it
-      // The user can request a resend later
+      console.error('Failed to send registration email:', emailError);
+      // Don't fail registration if email fails
     }
 
     // Return success response
     return NextResponse.json(
       {
         success: true,
-        message: 'Registration successful. Please check your email to confirm your registration.',
+        message: 'Registration successful! Your registration is confirmed.',
         data: {
           id: user._id,
           name: `${user.firstName} ${user.lastName}`,
           email: user.email,
           type: user.type,
           registrationCode: user.registrationCode,
-          confirmationSent: user.emailSent,
+          isConfirmed: user.isConfirmed, // Will be true
+          emailSent: user.emailSent,
         },
       },
       { status: 201 }
@@ -263,12 +197,12 @@ export async function POST(request: NextRequest) {
     // Handle specific MongoDB errors
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
-      const message = field === 'email' 
+      const message = field === 'email'
         ? 'Email already registered'
         : field === 'registrationCode'
-        ? 'Registration code conflict. Please try again.'
-        : 'Duplicate key error';
-      
+          ? 'Registration code conflict. Please try again.'
+          : 'Duplicate key error';
+
       return NextResponse.json(
         { error: message },
         { status: 409 }
@@ -304,7 +238,7 @@ export async function GET(request: NextRequest) {
 
     // Check if email exists
     if (email) {
-      const user = await Model.findOne({ email }).select('-confirmationToken -__v');
+      const user = await Model.findOne({ email }).select('-__v');
       if (!user) {
         return NextResponse.json(
           { exists: false },
@@ -319,7 +253,7 @@ export async function GET(request: NextRequest) {
           email: user.email,
           type: user.type,
           registrationCode: user.registrationCode,
-          isConfirmed: user.isConfirmed,
+          isConfirmed: user.isConfirmed, // Will always be true
           createdAt: user.createdAt,
         }
       });
@@ -327,7 +261,7 @@ export async function GET(request: NextRequest) {
 
     // Check registration code
     if (registrationCode) {
-      const user = await Model.findOne({ registrationCode }).select('-confirmationToken -__v');
+      const user = await Model.findOne({ registrationCode }).select('-__v');
       if (!user) {
         return NextResponse.json(
           { exists: false },
@@ -341,7 +275,7 @@ export async function GET(request: NextRequest) {
           name: `${user.firstName} ${user.lastName}`,
           email: user.email,
           type: user.type,
-          isConfirmed: user.isConfirmed,
+          isConfirmed: user.isConfirmed, // Will always be true
           createdAt: user.createdAt,
         }
       });

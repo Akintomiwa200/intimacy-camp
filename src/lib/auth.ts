@@ -1,45 +1,22 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
-const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret-key";
-const JWT_EXPIRES_IN = "7d";
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
-/**
- * Generate JWT token
- */
-export function generateToken(payload: { userId: string; email: string; role: string }): string {
-    return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+export interface TokenPayload {
+    userId: string;
+    email: string;
+    role: string;
 }
 
-/**
- * Verify JWT token
- */
-export function verifyToken(token: string): any {
-    try {
-        return jwt.verify(token, JWT_SECRET);
-    } catch (error) {
-        return null;
-    }
+export function generateToken(payload: TokenPayload): string {
+    return jwt.sign(payload, JWT_SECRET, { expiresIn: "24h" });
 }
 
-/**
- * Hash password
- */
 export async function hashPassword(password: string): Promise<string> {
-    const salt = await bcrypt.genSalt(10);
-    return bcrypt.hash(password, salt);
+    return await bcrypt.hash(password, 10);
 }
 
-/**
- * Compare password with hash
- */
 export async function comparePassword(password: string, hash: string): Promise<boolean> {
-    return bcrypt.compare(password, hash);
-}
-
-/**
- * Generate random token for email confirmation
- */
-export function generateConfirmationToken(): string {
-    return Math.random().toString(36).substring(2) + Date.now().toString(36);
+    return await bcrypt.compare(password, hash);
 }

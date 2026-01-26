@@ -197,21 +197,25 @@ const commonStyles = `
     }
 `;
 
+// In your email.ts file, update the CAMP_INFO object:
+
 const CAMP_INFO = {
-    name: "Intimacy Camp 2026",
+    name: "The Intimacy Camp 2026",
+    subtitle: "The Jacob Generation",
+    bibleVerse: "Psalms 24:6",
     location: "Ago Iwoye, Ogun State, Nigeria",
-    theme: "Deeper in Christ, Closer to His Heart",
-    date: "February 13-16, 2026",
-    whatsappGroup: "https://chat.whatsapp.com/YOUR_GROUP_LINK_HERE",
+    theme: "The Jacob Generation - Rising to Seek God's Face",
+    date: "April 5-7, 2026",
+    whatsappGroup: "https://chat.whatsapp.com/LSHPc8r3Ara96rzBBJsYhl",
     contactEmail: "contact@intimacycamp.org",
     contactPhone: "+234 XXX XXX XXXX",
     venue: "Ago Iwoye Camp Ground",
-    address: "Along Ijebu-Ibadan Expressway, Ago Iwoye, Ogun State"
+    address: "Along Ijebu-Ibadan Expressway, Ago Iwoye, Ogun State",
+    description: "A divine mobilization for those who will be bearing the torch of revival in the coming move of God.",
+    conveners: "The Mighty Men of David"
 };
 
-/**
- * Send confirmation email for registration
- */
+// Update the subject line in sendConfirmationEmail:
 export async function sendConfirmationEmail(
     to: string,
     name: string,
@@ -220,11 +224,12 @@ export async function sendConfirmationEmail(
     type: "participant" | "volunteer" = "participant"
 ): Promise<void> {
     const confirmUrl = `${process.env.NEXT_PUBLIC_APP_URL}/${type === "volunteer" ? "volunteer/" : ""}confirm?token=${confirmationToken}`;
-    
-    const subject = type === "volunteer"
-        ? `🎯 Volunteer Application Received - ${CAMP_INFO.name}`
-        : `🎉 Registration Confirmation - ${CAMP_INFO.name}`;
 
+    const subject = type === "volunteer"
+        ? `🎖️ Volunteer Application Received - The Intimacy Camp 2026`
+        : `✅ Registration Successful - The Intimacy Camp 2026`;
+
+    // Update HTML content to match your new design
     const html = `
         <!DOCTYPE html>
         <html>
@@ -236,22 +241,48 @@ export async function sendConfirmationEmail(
         </head>
         <body>
             <div class="container">
-                <div class="header">
+                <div class="header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
                     <div class="header-content">
-                        <div class="logo">INTIMACY CAMP</div>
-                        <div class="camp-title">${CAMP_INFO.name}</div>
-                        <div class="camp-subtitle">${CAMP_INFO.theme}</div>
-                        <div class="camp-subtitle">${CAMP_INFO.date} • ${CAMP_INFO.location}</div>
+                        <div class="logo" style="color: #fff; font-size: 28px; font-weight: 800; letter-spacing: 2px;">
+                            THE INTIMACY CAMP
+                        </div>
+                        <div class="camp-title" style="font-size: 32px;">${CAMP_INFO.name}</div>
+                        <div class="camp-subtitle" style="font-size: 24px; font-weight: 700; color: #d1fae5;">
+                            ${CAMP_INFO.subtitle}
+                        </div>
+                        <div class="camp-subtitle" style="font-size: 18px; margin-top: 10px;">
+                            ${CAMP_INFO.bibleVerse}
+                        </div>
+                        <div class="camp-subtitle">
+                            ${CAMP_INFO.date} • ${CAMP_INFO.location}
+                        </div>
                     </div>
                 </div>
                 
                 <div class="content">
                     <div class="content-section">
-                        <h2 style="color: #667eea; margin-bottom: 25px;">Hello ${name}!</h2>
-                        <p>We're thrilled that you've chosen to join us for ${CAMP_INFO.name}! ${type === "volunteer" ? 'Your volunteer application has been received and we appreciate your heart to serve.' : 'Your registration has been successfully processed.'}</p>
+                        <h2 style="color: #10b981; margin-bottom: 25px; font-size: 28px;">
+                            🎉 Registration Successful, ${name}!
+                        </h2>
+                        <p style="font-size: 16px; line-height: 1.8;">
+                            We're thrilled that you've joined <strong>The Jacob Generation</strong> for 
+                            ${CAMP_INFO.name}! ${type === "volunteer"
+            ? 'Your volunteer application has been received and we appreciate your heart to serve.'
+            : 'Your registration has been successfully processed.'}
+                        </p>
+                        
+                        <div style="background: #f0fdf4; border: 2px solid #10b981; border-radius: 12px; padding: 20px; margin: 25px 0;">
+                            <h3 style="color: #065f46; margin-top: 0; text-align: center;">
+                                ✨ A Generation That Seeks His Face
+                            </h3>
+                            <p style="text-align: center; font-style: italic; color: #047857;">
+                                "This is the generation of them that seek him, that seek thy face, O Jacob. Selah."
+                                <br><span style="font-size: 14px;">- Psalms 24:6</span>
+                            </p>
+                        </div>
                         
                         <div class="highlight-box">
-                            <h3 style="margin-top: 0; color: #764ba2;">📋 Registration Details</h3>
+                            <h3 style="margin-top: 0; color: #065f46;">📋 Registration Details</h3>
                             <div class="info-item">
                                 <span class="info-icon">👤</span>
                                 <strong>Name:</strong> ${name}
@@ -261,52 +292,37 @@ export async function sendConfirmationEmail(
                                 <strong>Email:</strong> ${to}
                             </div>
                             <div class="info-item">
-                                <span class="info-icon">🎟️</span>
+                                <span class="info-icon">🎫</span>
                                 <strong>Registration Type:</strong> ${type === "volunteer" ? 'Volunteer' : 'Participant'}
                             </div>
+                            <div class="info-item">
+                                <span class="info-icon">📅</span>
+                                <strong>Event Date:</strong> ${CAMP_INFO.date}
+                            </div>
                         </div>
                         
-                        <div class="registration-code">
+                        <div class="registration-code" style="background: linear-gradient(135deg, #065f46 0%, #10b981 100%);">
                             <div style="font-size: 14px; margin-bottom: 5px;">YOUR REGISTRATION CODE</div>
                             ${registrationCode}
-                            <div style="font-size: 12px; margin-top: 10px; opacity: 0.9;">Present this code at registration desk</div>
-                        </div>
-                        
-                        <div class="content-section">
-                            <h3 style="color: #764ba2;">✅ Complete Your Registration</h3>
-                            <p>Please click the button below to confirm your ${type === "volunteer" ? 'volunteer application' : 'registration'}:</p>
-                            <div style="text-align: center; margin: 30px 0;">
-                                <a href="${confirmUrl}" class="button">
-                                    ${type === "volunteer" ? 'CONFIRM APPLICATION' : 'CONFIRM REGISTRATION'}
-                                </a>
+                            <div style="font-size: 12px; margin-top: 10px; opacity: 0.9;">
+                                Present this code at registration desk
                             </div>
-                            <p style="text-align: center; font-size: 14px; color: #666;">
-                                <strong>Or copy this link:</strong><br>
-                                <span style="word-break: break-all; color: #667eea;">${confirmUrl}</span>
-                            </p>
-                            <p style="text-align: center; color: #e74c3c; font-weight: 600;">
-                                ⚠️ This confirmation link expires in 24 hours
-                            </p>
                         </div>
                         
+                        
+                        
                         <div class="content-section">
-                            <h3 style="color: #764ba2;">📱 Join Our WhatsApp Group</h3>
-                            <p>Stay updated with all camp announcements, connect with fellow participants, and receive important updates by joining our official WhatsApp group:</p>
+                            <h3 style="color: #065f46;">📱 Join Our WhatsApp Group</h3>
+                            <p>Stay updated with all camp announcements, connect with fellow participants, and receive important updates:</p>
                             <div style="text-align: center; margin: 25px 0;">
                                 <a href="${CAMP_INFO.whatsappGroup}" class="button whatsapp-button" target="_blank">
                                     📲 JOIN WHATSAPP GROUP
                                 </a>
                             </div>
-                            <div class="qr-code">
-                                <p><strong>Scan QR Code to Join:</strong></p>
-                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(CAMP_INFO.whatsappGroup)}" 
-                                     alt="WhatsApp Group QR Code" 
-                                     style="max-width: 150px; height: auto;">
-                            </div>
                         </div>
                         
                         <div class="content-section">
-                            <h3 style="color: #764ba2;">📍 Camp Location</h3>
+                            <h3 style="color: #065f46;">📍 Event Details</h3>
                             <div class="info-item">
                                 <span class="info-icon">🏕️</span>
                                 <strong>Venue:</strong> ${CAMP_INFO.venue}
@@ -319,41 +335,49 @@ export async function sendConfirmationEmail(
                                 <span class="info-icon">📅</span>
                                 <strong>Date:</strong> ${CAMP_INFO.date}
                             </div>
+                            <div class="info-item">
+                                <span class="info-icon">🙏</span>
+                                <strong>Convened by:</strong> ${CAMP_INFO.conveners}
+                            </div>
                         </div>
                         
-                        <div class="highlight-box">
-                            <h4 style="color: #2c3e50; margin-top: 0;">📝 What to Bring:</h4>
+                        <div style="background: #f0fdf4; padding: 20px; border-radius: 10px; margin: 25px 0; border-left: 4px solid #10b981;">
+                            <h4 style="color: #065f46; margin-top: 0;">🎯 What To Expect:</h4>
                             <ul style="margin: 10px 0; padding-left: 20px;">
-                                <li>Bible and notebook</li>
-                                <li>Comfortable clothing for sessions</li>
-                                <li>Personal toiletries</li>
-                                <li>Bedding (if staying overnight)</li>
-                                <li>Water bottle</li>
-                                <li>Heart ready for encounter!</li>
+                                <li>Powerful worship encounters</li>
+                                <li>Prophetic teaching sessions</li>
+                                <li>Heartfelt prayer gatherings</li>
+                                <li>Destiny-defining moments</li>
+                                <li>Fellowship with like-minded believers</li>
                             </ul>
                         </div>
                         
-                        <p>If you have any questions, please contact us at <a href="mailto:${CAMP_INFO.contactEmail}">${CAMP_INFO.contactEmail}</a> or call ${CAMP_INFO.contactPhone}.</p>
+                        <p style="font-size: 16px; line-height: 1.8;">
+                            <strong>We're praying for you as you prepare for this divine encounter!</strong><br><br>
+                            This April, a Jacob Generation is rising—a generation that seeks the face of God, not just the work of His hands.
+                        </p>
                         
-                        <p style="margin-top: 30px;">
-                            <strong>We're praying for you as you prepare for this life-changing experience!</strong><br><br>
-                            In His Love,<br>
-                            <strong>The ${CAMP_INFO.name} Team</strong>
+                        <p style="margin-top: 30px; text-align: center;">
+                            <strong>In His Service,</strong><br>
+                            <span style="color: #10b981; font-weight: 700;">The Intimacy Camp 2026 Team</span><br>
+                            ${CAMP_INFO.conveners}
                         </p>
                     </div>
                 </div>
                 
-                <div class="footer">
-                    <p style="margin: 0 0 10px 0;">
-                        <strong>${CAMP_INFO.name}</strong><br>
-                        ${CAMP_INFO.theme}
+                <div class="footer" style="background: linear-gradient(135deg, #1f2937 0%, #111827 100%);">
+                    <p style="margin: 0 0 10px 0; font-size: 18px; color: #10b981;">
+                        <strong>${CAMP_INFO.name}</strong>
                     </p>
-                    <p style="margin: 10px 0; font-size: 12px; opacity: 0.7;">
+                    <p style="margin: 0 0 5px 0; color: #d1fae5;">
+                        ${CAMP_INFO.subtitle}
+                    </p>
+                    <p style="margin: 10px 0; font-size: 12px; opacity: 0.7; color: rgba(255,255,255,0.8);">
                         ${CAMP_INFO.date} • ${CAMP_INFO.location}<br>
-                        <a href="mailto:${CAMP_INFO.contactEmail}">${CAMP_INFO.contactEmail}</a> • ${CAMP_INFO.contactPhone}
+                        <a href="mailto:${CAMP_INFO.contactEmail}" style="color: #10b981;">${CAMP_INFO.contactEmail}</a> • ${CAMP_INFO.contactPhone}
                     </p>
-                    <p style="margin: 15px 0 0 0; font-size: 12px; opacity: 0.6;">
-                        "Draw near to God and He will draw near to you." - James 4:8
+                    <p style="margin: 15px 0 0 0; font-size: 12px; opacity: 0.6; font-style: italic;">
+                        "This is the generation of them that seek him, that seek thy face, O Jacob. Selah." - Psalms 24:6
                     </p>
                 </div>
             </div>
@@ -363,7 +387,7 @@ export async function sendConfirmationEmail(
 
     try {
         await transporter.sendMail({
-            from: `"Intimacy Camp 2026" <${process.env.EMAIL_FROM}>`,
+            from: `"The Intimacy Camp 2026" <${process.env.EMAIL_FROM}>`,
             to,
             subject,
             html,
@@ -373,7 +397,7 @@ export async function sendConfirmationEmail(
                 'Importance': 'high'
             }
         });
-        console.log(`✅ Confirmation email sent to ${to}`);
+        console.log(`✅ Registration confirmation email sent to ${to}`);
     } catch (error) {
         console.error("Email sending error:", error);
         throw new Error("Failed to send confirmation email");
@@ -417,9 +441,9 @@ export async function sendWelcomeEmail(
                         <h1 style="color: #667eea; font-size: 36px; margin-bottom: 10px;">🎉</h1>
                         <h2 style="color: #667eea; margin-bottom: 20px;">Welcome ${name}!</h2>
                         <p style="font-size: 18px; color: #2c3e50;">
-                            ${type === "volunteer" 
-                                ? 'Your volunteer application has been confirmed! We\'re grateful for your heart to serve.' 
-                                : 'Your registration is now complete! Get ready for an unforgettable encounter with God.'}
+                            ${type === "volunteer"
+            ? 'Your volunteer application has been confirmed! We\'re grateful for your heart to serve.'
+            : 'Your registration is now complete! Get ready for an unforgettable encounter with God.'}
                         </p>
                     </div>
                     
@@ -577,7 +601,7 @@ export async function sendDayBeforeReminder(
     type: "participant" | "volunteer" = "participant"
 ): Promise<void> {
     const subject = `⏰ Tomorrow is the Day! - ${CAMP_INFO.name} Reminder`;
-    
+
     const html = `
         <!DOCTYPE html>
         <html>
@@ -753,7 +777,7 @@ export async function sendDayOfReminder(
     type: "participant" | "volunteer" = "participant"
 ): Promise<void> {
     const subject = `🎉 Today is the Day! - ${CAMP_INFO.name} Has Begun!`;
-    
+
     const html = `
         <!DOCTYPE html>
         <html>
@@ -923,7 +947,7 @@ export async function sendThankYouEmail(
     type: "participant" | "volunteer" = "participant"
 ): Promise<void> {
     const subject = `❤️ Thank You for Being Part of Intimacy Camp 2026!`;
-    
+
     const html = `
         <!DOCTYPE html>
         <html>
@@ -1083,7 +1107,7 @@ export async function sendFeedbackEmail(
     name: string
 ): Promise<void> {
     const subject = `📋 Share Your Experience - Intimacy Camp 2026 Feedback`;
-    
+
     const html = `
         <!DOCTYPE html>
         <html>
@@ -1165,13 +1189,3 @@ export async function sendFeedbackEmail(
         console.error("Feedback email error:", error);
     }
 }
-
-// Export all email functions
-export {
-    sendConfirmationEmail,
-    sendWelcomeEmail,
-    sendDayBeforeReminder,
-    sendDayOfReminder,
-    sendThankYouEmail,
-    sendFeedbackEmail
-};

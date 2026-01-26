@@ -1,7 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-// Inherit from Participant definition just for structure if possible, but mongoose needs explicit schema
-export interface IVolunteer extends Document {
+export interface IParticipant extends Document {
     firstName: string;
     lastName: string;
     email: string;
@@ -12,8 +11,7 @@ export interface IVolunteer extends Document {
     isLeader: 'yes' | 'no';
     ministry?: string;
     customMinistry?: string;
-    type: 'volunteer';
-    departments: string[];
+    type: 'participant' | 'volunteer';
     confirmationToken?: string;
     confirmationTokenExpires?: Date;
     registrationCode: string;
@@ -22,7 +20,7 @@ export interface IVolunteer extends Document {
     createdAt: Date;
 }
 
-const VolunteerSchema = new Schema<IVolunteer>({
+const ParticipantSchema = new Schema<IParticipant>({
     firstName: { type: String, required: true, minlength: 2, maxlength: 50 },
     lastName: { type: String, required: true, minlength: 2, maxlength: 50 },
     email: { type: String, required: true, unique: true },
@@ -43,17 +41,7 @@ const VolunteerSchema = new Schema<IVolunteer>({
             return this.isLeader === 'yes' && this.ministry === 'other';
         }
     },
-    type: { type: String, default: 'volunteer' },
-    departments: {
-        type: [String],
-        required: true,
-        validate: {
-            validator: function (v: string[]) {
-                return v.length > 0 && v.length <= 2;
-            },
-            message: 'Please select 1-2 departments'
-        }
-    },
+    type: { type: String, default: 'participant', enum: ['participant', 'volunteer'] },
     confirmationToken: { type: String },
     confirmationTokenExpires: { type: Date },
     registrationCode: { type: String, required: true, unique: true },
@@ -63,8 +51,8 @@ const VolunteerSchema = new Schema<IVolunteer>({
 });
 
 // Indexes
-VolunteerSchema.index({ email: 1 }, { unique: true });
-VolunteerSchema.index({ registrationCode: 1 }, { unique: true });
-VolunteerSchema.index({ createdAt: 1 });
+ParticipantSchema.index({ email: 1 }, { unique: true });
+ParticipantSchema.index({ registrationCode: 1 }, { unique: true });
+ParticipantSchema.index({ createdAt: 1 });
 
-export default mongoose.models.Volunteer || mongoose.model<IVolunteer>("Volunteer", VolunteerSchema);
+export default mongoose.models.Participant || mongoose.model<IParticipant>("Participant", ParticipantSchema);
