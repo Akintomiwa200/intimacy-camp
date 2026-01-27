@@ -257,6 +257,8 @@ export default function AdminDashboardPage() {
         setTestimonies(data.data.recent?.testimonies || []);
         setAnalytics(data.data.analytics);
         setRecentActivities(data.data.recentActivities || []);
+      } else {
+        console.error("Dashboard API error:", data.message);
       }
     } catch (error) {
       console.error("Failed to fetch dashboard data:", error);
@@ -604,9 +606,9 @@ export default function AdminDashboardPage() {
                       >
                         <div className="flex items-center gap-3">
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center ${activity.type === 'participant' ? 'bg-blue-100 dark:bg-blue-900/30' :
-                              activity.type === 'volunteer' ? 'bg-green-100 dark:bg-green-900/30' :
-                                activity.type === 'sermon' ? 'bg-purple-100 dark:bg-purple-900/30' :
-                                  'bg-orange-100 dark:bg-orange-900/30'
+                            activity.type === 'volunteer' ? 'bg-green-100 dark:bg-green-900/30' :
+                              activity.type === 'sermon' ? 'bg-purple-100 dark:bg-purple-900/30' :
+                                'bg-orange-100 dark:bg-orange-900/30'
                             }`}>
                             {activity.type === 'participant' && <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
                             {activity.type === 'volunteer' && <UserCheck className="w-4 h-4 text-green-600 dark:text-green-400" />}

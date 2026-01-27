@@ -3,11 +3,11 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { 
-  CheckCircle, 
-  XCircle, 
-  Loader2, 
-  Search, 
+import {
+  CheckCircle,
+  XCircle,
+  Loader2,
+  Search,
   User,
   Mail,
   Phone,
@@ -28,6 +28,7 @@ import { Input } from "@/src/components/ui/input";
 import { ROUTES } from "@/src/lib/constants";
 import { Badge } from "@/src/components/ui/badge";
 import { Card, CardContent } from "@/src/components/ui/card";
+import { toast } from "sonner";
 
 interface Registration {
   _id: string;
@@ -110,8 +111,8 @@ function ConfirmContent() {
         // Update the local state
         if (searchResult) {
           const updatedRegistrations = searchResult.registrations.map(reg =>
-            reg._id === registrationId ? { 
-              ...reg, 
+            reg._id === registrationId ? {
+              ...reg,
               attendanceChecked: true,
               checkedInAt: new Date().toISOString()
             } : reg
@@ -121,12 +122,12 @@ function ConfirmContent() {
             registrations: updatedRegistrations
           });
         }
-        alert("Check-in successful!");
+        toast.success("Check-in successful!");
       } else {
-        alert(data.error || "Failed to check in.");
+        toast.error(data.error || "Failed to check in.");
       }
     } catch (error) {
-      alert("Failed to check in. Please try again.");
+      toast.error("Failed to check in. Please try again.");
     } finally {
       setIsCheckingIn(null);
     }
@@ -343,11 +344,10 @@ function ConfirmContent() {
                               {/* Left Column - User Info */}
                               <div className="flex-1">
                                 <div className="flex items-start gap-4">
-                                  <div className={`p-3 rounded-full ${
-                                    reg.registrationType === 'volunteer' 
-                                      ? 'bg-orange-100 text-orange-600' 
-                                      : 'bg-blue-100 text-blue-600'
-                                  }`}>
+                                  <div className={`p-3 rounded-full ${reg.registrationType === 'volunteer'
+                                    ? 'bg-orange-100 text-orange-600'
+                                    : 'bg-blue-100 text-blue-600'
+                                    }`}>
                                     <User className="w-6 h-6" />
                                   </div>
                                   <div className="flex-1">
@@ -356,16 +356,16 @@ function ConfirmContent() {
                                       <h4 className="text-xl font-bold text-gray-900">
                                         {reg.firstName} {reg.lastName}
                                       </h4>
-                                      <Badge 
+                                      <Badge
                                         className={
-                                          reg.registrationType === 'volunteer' 
-                                            ? 'bg-orange-100 text-orange-800 border-orange-200' 
+                                          reg.registrationType === 'volunteer'
+                                            ? 'bg-orange-100 text-orange-800 border-orange-200'
                                             : 'bg-blue-100 text-blue-800 border-blue-200'
                                         }
                                       >
                                         {reg.registrationType === 'volunteer' ? 'Volunteer' : 'Participant'}
                                       </Badge>
-                                      
+
                                       {reg.isLeader === 'yes' && (
                                         <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
                                           <Star className="w-3 h-3 mr-1" />
@@ -386,7 +386,7 @@ function ConfirmContent() {
                                         </Badge>
                                       )}
                                     </div>
-                                    
+
                                     {/* Contact Info */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                                       <div className="flex items-center gap-2 text-gray-600">
@@ -443,8 +443,8 @@ function ConfirmContent() {
                                           <p className="text-sm text-gray-500 mb-2">Ministry:</p>
                                           <Badge variant="outline" className="text-sm">
                                             {getMinistryIcon(reg.ministry)} {
-                                              reg.ministry === 'other' && reg.customMinistry 
-                                                ? reg.customMinistry 
+                                              reg.ministry === 'other' && reg.customMinistry
+                                                ? reg.customMinistry
                                                 : reg.ministry.charAt(0).toUpperCase() + reg.ministry.slice(1)
                                             }
                                           </Badge>
@@ -454,7 +454,7 @@ function ConfirmContent() {
                                   </div>
                                 </div>
                               </div>
-                              
+
                               {/* Right Column - Actions */}
                               <div className="md:w-48 flex flex-col gap-3">
                                 {/* Registration Date */}
