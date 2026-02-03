@@ -13,7 +13,7 @@ import {
     PieChart,
     Pie,
     Cell,
-    Legend, // 👈 ADD THIS
+    Legend,
 } from "recharts";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card";

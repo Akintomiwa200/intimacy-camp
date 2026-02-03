@@ -119,13 +119,28 @@ export async function POST(request: NextRequest) {
     const models = await getModels();
     const Model = type === 'volunteer' ? models.Volunteer : models.Participant;
 
-    // Check if user already exists
-    const existingUser = await Model.findOne({ email: data.email });
-    if (existingUser) {
+    // Check for existing email in BOTH collections
+    const existingParticipantByEmail = await models.Participant.findOne({ email: data.email });
+    const existingVolunteerByEmail = await models.Volunteer.findOne({ email: data.email });
+
+    if (existingParticipantByEmail || existingVolunteerByEmail) {
       return NextResponse.json(
         { error: 'Email already registered' },
         { status: 409 }
       );
+    }
+
+    // Check for existing phone in BOTH collections
+    if (data.phone) {
+      const existingParticipantByPhone = await models.Participant.findOne({ phone: data.phone });
+      const existingVolunteerByPhone = await models.Volunteer.findOne({ phone: data.phone });
+
+      if (existingParticipantByPhone || existingVolunteerByPhone) {
+        return NextResponse.json(
+          { error: 'Phone number already registered' },
+          { status: 409 }
+        );
+      }
     }
 
     // Generate registration data - NO TOKEN NEEDED

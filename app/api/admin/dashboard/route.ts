@@ -3,76 +3,19 @@ import { connectToDatabase } from "@/src/lib/mongodb";
 import mongoose from "mongoose";
 import Participant from "@/src/models/Participant";
 import Volunteer from "@/src/models/Volunteer";
-
-// Define models if they don't exist
-const defineModels = () => {
-  // Participant and Volunteer are imported
-
-  if (!mongoose.models.Sermon) {
-    mongoose.model("Sermon", new mongoose.Schema({
-      title: String,
-      preacher: String,
-      date: Date,
-      description: String,
-      audioUrl: String,
-      videoUrl: String,
-      thumbnailUrl: String,
-      views: { type: Number, default: 0 },
-      downloads: { type: Number, default: 0 },
-      tags: [String],
-      createdAt: { type: Date, default: Date.now }
-    }));
-  }
-
-  if (!mongoose.models.MediaClip) {
-    mongoose.model("MediaClip", new mongoose.Schema({
-      title: String,
-      type: { type: String, enum: ['video', 'image', 'short'] },
-      url: String,
-      thumbnailUrl: String,
-      duration: Number,
-      category: String,
-      views: { type: Number, default: 0 },
-      createdAt: { type: Date, default: Date.now }
-    }));
-  }
-
-  if (!mongoose.models.AudioMessage) {
-    mongoose.model("AudioMessage", new mongoose.Schema({
-      title: String,
-      speaker: String,
-      audioUrl: String,
-      duration: Number,
-      category: String,
-      plays: { type: Number, default: 0 },
-      createdAt: { type: Date, default: Date.now }
-    }));
-  }
-
-  if (!mongoose.models.Testimony) {
-    mongoose.model("Testimony", new mongoose.Schema({
-      title: String,
-      content: String,
-      author: String,
-      email: String,
-      status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
-      category: String,
-      createdAt: { type: Date, default: Date.now }
-    }));
-  }
-};
+import Sermon from "@/src/models/Sermon";
+import Media from "@/src/models/Media";
+import Testimony from "@/src/models/Testimony";
+import AudioMessage from "@/src/models/AudioMessage";
 
 export async function GET(req: NextRequest) {
   try {
     await connectToDatabase();
-    defineModels();
+
 
     // Get models
-    // Participant and Volunteer are imported directly
-    const Sermon = mongoose.models.Sermon;
-    const MediaClip = mongoose.models.MediaClip;
-    const AudioMessage = mongoose.models.AudioMessage;
-    const Testimony = mongoose.models.Testimony;
+    // AudioMessage is defined inline above if not exists
+    // const AudioMessage = mongoose.models.AudioMessage; // This line is no longer needed as AudioMessage is imported directly
 
     // Fetch all data in parallel
     const [
@@ -86,7 +29,7 @@ export async function GET(req: NextRequest) {
       Participant.find({}).sort({ createdAt: -1 }).lean(),
       Volunteer.find({}).sort({ createdAt: -1 }).lean(),
       Sermon.find({}).sort({ date: -1 }).limit(5).lean(),
-      MediaClip.find({}).sort({ createdAt: -1 }).limit(10).lean(),
+      Media.find({}).sort({ createdAt: -1 }).limit(10).lean(),
       AudioMessage.find({}).sort({ createdAt: -1 }).limit(5).lean(),
       Testimony.find({}).sort({ createdAt: -1 }).limit(10).lean()
     ]);
@@ -95,13 +38,13 @@ export async function GET(req: NextRequest) {
     const participantsTotal = participants.length;
     const volunteersTotal = volunteers.length;
     const sermonsTotal = await Sermon.countDocuments();
-    const mediaTotal = await MediaClip.countDocuments();
+    const mediaTotal = await Media.countDocuments();
     const audioTotal = await AudioMessage.countDocuments();
 
     // Get aggregate data
     const [sermonViews, mediaViews, audioPlays] = await Promise.all([
       Sermon.aggregate([{ $group: { _id: null, total: { $sum: "$views" } } }]),
-      MediaClip.aggregate([{ $group: { _id: null, total: { $sum: "$views" } } }]),
+      Media.aggregate([{ $group: { _id: null, total: { $sum: "$views" } } }]),
       AudioMessage.aggregate([{ $group: { _id: null, total: { $sum: "$plays" } } }])
     ]);
 
@@ -127,8 +70,8 @@ export async function GET(req: NextRequest) {
       },
       media: {
         total: mediaTotal,
-        videos: await MediaClip.countDocuments({ type: 'video' }),
-        images: await MediaClip.countDocuments({ type: 'image' }),
+        videos: await Media.countDocuments({ type: 'video' }),
+        images: await Media.countDocuments({ type: 'image' }),
         totalViews: mediaViews[0]?.total || 0
       },
       audio: {
@@ -137,8 +80,8 @@ export async function GET(req: NextRequest) {
       },
       testimonies: {
         total: await Testimony.countDocuments(),
-        pending: await Testimony.countDocuments({ status: 'pending' }),
-        approved: await Testimony.countDocuments({ status: 'approved' })
+        pending: await Testimony.countDocuments({ isApproved: false }),
+        approved: await Testimony.countDocuments({ isApproved: true })
       },
       // FIX: overview moved INSIDE stats object
       overview: {
@@ -281,7 +224,7 @@ async function getGrowthRate(model: any, type: string) {
 async function getRecentActivities() {
   const models = [
     'Participant', 'Volunteer', 'Sermon',
-    'MediaClip', 'AudioMessage', 'Testimony'
+    'Media', 'AudioMessage', 'Testimony'
   ];
 
   const activities: any[] = [];
@@ -318,10 +261,9 @@ async function getRecentActivities() {
 }
 
 async function getMediaByCategory() {
-  const MediaClip = mongoose.models.MediaClip;
-  if (!MediaClip) return [];
+  if (!Media) return [];
 
-  const result = await MediaClip.aggregate([
+  const result = await Media.aggregate([
     {
       $group: {
         _id: "$category",

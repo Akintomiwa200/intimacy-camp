@@ -807,148 +807,392 @@ export default function AdminDashboardPage() {
             </Card>
           </TabsContent>
 
-          {/* Analytics Tab */}
-          <TabsContent value="analytics" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Testimonies by Category */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Testimonies by Category</CardTitle>
-                  <CardDescription>Distribution of testimonies across categories</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={formatTestimonyData()}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={(entry) => `${entry.name}: ${entry.value}`}
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="value"
+          {/* Sermons Tab */}
+          <TabsContent value="sermons">
+            <Card>
+              <CardHeader>
+                <CardTitle>Sermons</CardTitle>
+                <CardDescription>
+                  {sermons.length} sermon{sermons.length !== 1 ? 's' : ''}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-md border">
+                  <div className="grid grid-cols-12 gap-4 p-4 border-b bg-gray-50 dark:bg-gray-900 font-medium">
+                    <div className="col-span-4">Title & Preacher</div>
+                    <div className="col-span-2">Date</div>
+                    <div className="col-span-2">Views</div>
+                    <div className="col-span-2">Downloads</div>
+                    <div className="col-span-2">Actions</div>
+                  </div>
+                  {sermons.map((sermon) => (
+                    <div
+                      key={sermon._id}
+                      className="grid grid-cols-12 gap-4 p-4 border-b hover:bg-gray-50 dark:hover:bg-gray-900/50"
+                    >
+                      <div className="col-span-4">
+                        <div className="font-medium">{sermon.title}</div>
+                        <div className="text-sm text-gray-500">{sermon.preacher}</div>
+                      </div>
+                      <div className="col-span-2 text-sm text-gray-500">
+                        {new Date(sermon.date).toLocaleDateString()}
+                      </div>
+                      <div className="col-span-2">{sermon.views.toLocaleString()}</div>
+                      <div className="col-span-2">{sermon.downloads.toLocaleString()}</div>
+                      <div className="col-span-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleDelete('sermons', sermon._id)}
                         >
-                          {formatTestimonyData().map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Engagement Line Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Engagement Overview</CardTitle>
-                  <CardDescription>Platform engagement over time</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={formatTrendData()}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                        <XAxis dataKey="date" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Line
-                          type="monotone"
-                          dataKey="total"
-                          stroke={CHART_COLORS.purple}
-                          strokeWidth={2}
-                          dot={{ r: 4 }}
-                          activeDot={{ r: 6 }}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="registrations"
-                          stroke={CHART_COLORS.blue}
-                          strokeWidth={2}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Content Summary</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Total Sermons</span>
-                      <span className="font-semibold">{stats.sermons.total}</span>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Media Clips</span>
-                      <span className="font-semibold">{stats.media.total}</span>
+                  ))}
+                  {sermons.length === 0 && (
+                    <div className="p-8 text-center text-gray-500">
+                      No sermons found
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Audio Messages</span>
-                      <span className="font-semibold">{stats.audio.total}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Engagement Metrics</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Total Views</span>
-                      <span className="font-semibold">
-                        {(stats.sermons.totalViews + stats.media.totalViews).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Audio Plays</span>
-                      <span className="font-semibold">{stats.audio.totalPlays.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Total Engagement</span>
-                      <span className="font-semibold">{stats.overview.totalEngagement.toLocaleString()}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">People Overview</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Total People</span>
-                      <span className="font-semibold">{stats.overview.totalPeople}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Active Volunteers</span>
-                      <span className="font-semibold">{stats.volunteers.active}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Total Participants</span>
-                      <span className="font-semibold">{stats.participants.total}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
+
+          {/* Media Tab */}
+          <TabsContent value="media">
+            <Card>
+              <CardHeader>
+                <CardTitle>Media Gallery</CardTitle>
+                <CardDescription>
+                  {mediaClips.length} media clip{mediaClips.length !== 1 ? 's' : ''}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-md border">
+                  <div className="grid grid-cols-12 gap-4 p-4 border-b bg-gray-50 dark:bg-gray-900 font-medium">
+                    <div className="col-span-5">Title</div>
+                    <div className="col-span-2">Type</div>
+                    <div className="col-span-2">Category</div>
+                    <div className="col-span-2">Views</div>
+                    <div className="col-span-1">Actions</div>
+                  </div>
+                  {mediaClips.map((clip) => (
+                    <div
+                      key={clip._id}
+                      className="grid grid-cols-12 gap-4 p-4 border-b hover:bg-gray-50 dark:hover:bg-gray-900/50"
+                    >
+                      <div className="col-span-5 font-medium">{clip.title}</div>
+                      <div className="col-span-2 capitalize">
+                        <Badge variant="outline">{clip.type}</Badge>
+                      </div>
+                      <div className="col-span-2 text-sm text-gray-500">{clip.category}</div>
+                      <div className="col-span-2">{clip.views.toLocaleString()}</div>
+                      <div className="col-span-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleDelete('media', clip._id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  {mediaClips.length === 0 && (
+                    <div className="p-8 text-center text-gray-500">
+                      No media clips found
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Audio Tab */}
+          <TabsContent value="audio">
+            <Card>
+              <CardHeader>
+                <CardTitle>Audio Messages</CardTitle>
+                <CardDescription>
+                  {audioMessages.length} audio message{audioMessages.length !== 1 ? 's' : ''}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-md border">
+                  <div className="grid grid-cols-12 gap-4 p-4 border-b bg-gray-50 dark:bg-gray-900 font-medium">
+                    <div className="col-span-4">Title</div>
+                    <div className="col-span-3">Speaker</div>
+                    <div className="col-span-2">Duration</div>
+                    <div className="col-span-2">Plays</div>
+                    <div className="col-span-1">Actions</div>
+                  </div>
+                  {audioMessages.map((audio) => (
+                    <div
+                      key={audio._id}
+                      className="grid grid-cols-12 gap-4 p-4 border-b hover:bg-gray-50 dark:hover:bg-gray-900/50"
+                    >
+                      <div className="col-span-4 font-medium">{audio.title}</div>
+                      <div className="col-span-3 text-sm text-gray-500">{audio.speaker}</div>
+                      <div className="col-span-2 text-sm">
+                        {Math.floor(audio.duration / 60)}:{(audio.duration % 60).toString().padStart(2, '0')}
+                      </div>
+                      <div className="col-span-2">{audio.plays.toLocaleString()}</div>
+                      <div className="col-span-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleDelete('audio', audio._id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  {audioMessages.length === 0 && (
+                    <div className="p-8 text-center text-gray-500">
+                      No audio messages found
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Testimonies Tab */}
+          <TabsContent value="testimonies">
+            <Card>
+              <CardHeader>
+                <CardTitle>Testimonies</CardTitle>
+                <CardDescription>
+                  {testimonies.length} testimonie{testimonies.length !== 1 ? 's' : ''}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-md border">
+                  <div className="grid grid-cols-12 gap-4 p-4 border-b bg-gray-50 dark:bg-gray-900 font-medium">
+                    <div className="col-span-3">Author</div>
+                    <div className="col-span-4">Content</div>
+                    <div className="col-span-2">Status</div>
+                    <div className="col-span-2">Date</div>
+                    <div className="col-span-1">Actions</div>
+                  </div>
+                  {testimonies.map((testimony) => (
+                    <div
+                      key={testimony._id}
+                      className="grid grid-cols-12 gap-4 p-4 border-b hover:bg-gray-50 dark:hover:bg-gray-900/50"
+                    >
+                      <div className="col-span-3">
+                        <div className="font-medium">{testimony.author}</div>
+                        <div className="text-xs text-gray-500">{testimony.title}</div>
+                      </div>
+                      <div className="col-span-4 text-sm text-gray-600 dark:text-gray-400">
+                        {testimony.content.length > 50
+                          ? `${testimony.content.substring(0, 50)}...`
+                          : testimony.content}
+                      </div>
+                      <div className="col-span-2">
+                        <Badge variant={
+                          testimony.status === 'approved' ? 'success' :
+                            testimony.status === 'rejected' ? 'destructive' : 'secondary'
+                        }>
+                          {testimony.status}
+                        </Badge>
+                      </div>
+                      <div className="col-span-2 text-sm text-gray-500">
+                        {new Date(testimony.createdAt).toLocaleDateString()}
+                      </div>
+                      <div className="col-span-1">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {testimony.status !== 'approved' && (
+                              <DropdownMenuItem
+                                onClick={() => handleUpdateStatus('testimonies', testimony._id, 'approved')}
+                              >
+                                <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
+                                Approve
+                              </DropdownMenuItem>
+                            )}
+                            {testimony.status !== 'rejected' && (
+                              <DropdownMenuItem
+                                onClick={() => handleUpdateStatus('testimonies', testimony._id, 'rejected')}
+                              >
+                                <XCircle className="w-4 h-4 mr-2 text-red-600" />
+                                Reject
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem
+                              className="text-red-600"
+                              onClick={() => handleDelete('testimonies', testimony._id)}
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  ))}
+                  {testimonies.length === 0 && (
+                    <div className="p-8 text-center text-gray-500">
+                      No testimonies found
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Analytics Tab */}
+            <TabsContent value="analytics" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Testimonies by Category */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Testimonies by Category</CardTitle>
+                    <CardDescription>Distribution of testimonies across categories</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-80">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={formatTestimonyData()}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            label={(entry) => `${entry.name}: ${entry.value}`}
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="value"
+                          >
+                            {formatTestimonyData().map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                          <Legend />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Engagement Line Chart */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Engagement Overview</CardTitle>
+                    <CardDescription>Platform engagement over time</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-80">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={formatTrendData()}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis dataKey="date" />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          <Line
+                            type="monotone"
+                            dataKey="total"
+                            stroke={CHART_COLORS.purple}
+                            strokeWidth={2}
+                            dot={{ r: 4 }}
+                            activeDot={{ r: 6 }}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="registrations"
+                            stroke={CHART_COLORS.blue}
+                            strokeWidth={2}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Quick Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Content Summary</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Total Sermons</span>
+                        <span className="font-semibold">{stats.sermons.total}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Media Clips</span>
+                        <span className="font-semibold">{stats.media.total}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Audio Messages</span>
+                        <span className="font-semibold">{stats.audio.total}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Engagement Metrics</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Total Views</span>
+                        <span className="font-semibold">
+                          {(stats.sermons.totalViews + stats.media.totalViews).toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Audio Plays</span>
+                        <span className="font-semibold">{stats.audio.totalPlays.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Total Engagement</span>
+                        <span className="font-semibold">{stats.overview.totalEngagement.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">People Overview</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Total People</span>
+                        <span className="font-semibold">{stats.overview.totalPeople}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Active Volunteers</span>
+                        <span className="font-semibold">{stats.volunteers.active}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Total Participants</span>
+                        <span className="font-semibold">{stats.participants.total}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
         </Tabs>
       </main>
     </div>

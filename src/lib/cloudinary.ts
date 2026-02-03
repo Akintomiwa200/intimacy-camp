@@ -16,26 +16,44 @@ export async function uploadToCloudinary(
     folder: string = "ymr"
 ): Promise<{ url: string; publicId: string }> {
     try {
-        let fileData: string;
-
         if (typeof file === "string") {
-            fileData = file;
+            // It's a base64 string or URL
+            const result = await cloudinary.uploader.upload(file, {
+                folder,
+                resource_type: "auto",
+            });
+            return {
+                url: result.secure_url,
+                publicId: result.public_id,
+            };
         } else {
-            // Convert File to base64
+            // It's a File object
             const arrayBuffer = await file.arrayBuffer();
             const buffer = Buffer.from(arrayBuffer);
-            fileData = `data:${file.type};base64,${buffer.toString("base64")}`;
+
+            return await new Promise((resolve, reject) => {
+                const uploadStream = cloudinary.uploader.upload_stream(
+                    {
+                        folder,
+                        resource_type: "auto",
+                    },
+                    (error, result) => {
+                        if (error) {
+                            console.error("Cloudinary upload stream error:", error);
+                            return reject(error);
+                        }
+                        if (!result) {
+                            return reject(new Error("Cloudinary upload returned no result"));
+                        }
+                        resolve({
+                            url: result.secure_url,
+                            publicId: result.public_id,
+                        });
+                    }
+                );
+                uploadStream.end(buffer);
+            });
         }
-
-        const result = await cloudinary.uploader.upload(fileData, {
-            folder,
-            resource_type: "auto",
-        });
-
-        return {
-            url: result.secure_url,
-            publicId: result.public_id,
-        };
     } catch (error) {
         console.error("Cloudinary upload error:", error);
         throw new Error("Failed to upload file");

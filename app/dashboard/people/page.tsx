@@ -109,7 +109,7 @@ export default function AdvancedPeoplePage() {
     todayRegistrations: 0,
   });
   const [viewPerson, setViewPerson] = useState<Person | null>(null);
-  
+
   // Real-time state
   const [realTimeEnabled, setRealTimeEnabled] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
@@ -119,38 +119,40 @@ export default function AdvancedPeoplePage() {
   const calculateStats = useCallback((peopleData: Person[]) => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
+
     let participants = 0;
     let volunteers = 0;
     let staff = 0;
     let confirmed = 0;
     let checkedIn = 0;
     let todayRegistrations = 0;
-    
+
     peopleData.forEach(person => {
       // Count by type
       if (person.type === 'participant') participants++;
       if (person.type === 'volunteer') volunteers++;
       if (person.type === 'staff' || person.isLeader === 'yes') staff++;
-      
-      // Count confirmed
-      if (person.isConfirmed) confirmed++;
-      
+
+      // Count confirmed (only for participants and volunteers)
+      if (person.isConfirmed && (person.type === 'participant' || person.type === 'volunteer')) {
+        confirmed++;
+      }
+
       // Count checked in
       if (person.checkInStatus) checkedIn++;
-      
+
       // Count today's registrations
       const createdAt = new Date(person.createdAt);
       if (createdAt >= today) todayRegistrations++;
     });
-    
+
     return {
       total: peopleData.length,
       participants,
       volunteers,
       staff,
       confirmed,
-      pending: peopleData.length - confirmed,
+      pending: (participants + volunteers) - confirmed, // Update pending logic to match
       checkedIn,
       todayRegistrations
     };
@@ -159,41 +161,40 @@ export default function AdvancedPeoplePage() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       const params = new URLSearchParams();
       if (selectedType && selectedType !== 'all') params.set('type', selectedType);
-      if (selectedStatus && selectedStatus !== 'all') params.set('status', selectedStatus);
-      
+
       const response = await fetch(`/api/admin/people?${params.toString()}`);
       if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         const newPeople = data.data.people || [];
-        
+
         if (!Array.isArray(newPeople)) {
           console.error('Expected array but got:', newPeople);
           setPeople([]);
           setStats(calculateStats([]));
           return;
         }
-        
+
         setPeople(newPeople);
-        
+
         // Calculate stats from the actual data we received
         const calculatedStats = calculateStats(newPeople);
         setStats(calculatedStats);
-        
+
         setLastUpdate(new Date());
-        
+
         // Debug logging
         console.log('Fetched data:', {
           total: newPeople.length,
           calculatedStats,
           samplePerson: newPeople[0]
         });
-        
+
       } else {
         throw new Error(data.error || 'Failed to fetch data');
       }
@@ -205,7 +206,7 @@ export default function AdvancedPeoplePage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedType, selectedStatus, calculateStats]);
+  }, [selectedType, calculateStats]); // Removed selectedStatus dependency
 
   // Real-time WebSocket connection
   const setupRealTimeConnection = useCallback(() => {
@@ -220,33 +221,33 @@ export default function AdvancedPeoplePage() {
     try {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const ws = new WebSocket(`${protocol}//${window.location.host}/api/ws/registrations`);
-      
+
       ws.onopen = () => {
         console.log('WebSocket connected');
         toast.success("Real-time mode enabled");
       };
-      
+
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          
+
           if (data.type === 'new_registration') {
             const person = data.data;
             toast.info('New Registration', {
               description: `${person.firstName} ${person.lastName} registered`,
             });
-            
+
             // Add new person and recalculate stats
             setPeople(prev => {
               const updated = [person, ...prev];
               setStats(calculateStats(updated));
               return updated;
             });
-            
+
           } else if (data.type === 'confirmation_update') {
             const { personId, isConfirmed } = data.data;
             setPeople(prev => {
-              const updated = prev.map(p => 
+              const updated = prev.map(p =>
                 p._id === personId ? { ...p, isConfirmed } : p
               );
               setStats(calculateStats(updated));
@@ -255,9 +256,9 @@ export default function AdvancedPeoplePage() {
           } else if (data.type === 'checkin_update') {
             const { personId, checkInStatus } = data.data;
             setPeople(prev => {
-              const updated = prev.map(p => 
-                p._id === personId ? { 
-                  ...p, 
+              const updated = prev.map(p =>
+                p._id === personId ? {
+                  ...p,
                   checkInStatus,
                   checkInTime: checkInStatus ? new Date().toISOString() : undefined
                 } : p
@@ -270,18 +271,18 @@ export default function AdvancedPeoplePage() {
           console.error('Error parsing WebSocket message:', error);
         }
       };
-      
+
       ws.onerror = (error) => {
         console.error('WebSocket error:', error);
       };
-      
+
       ws.onclose = () => {
         console.log('WebSocket disconnected');
         if (realTimeEnabled) {
           setTimeout(() => setupRealTimeConnection(), 5000);
         }
       };
-      
+
       wsRef.current = ws;
     } catch (error) {
       console.error('WebSocket setup failed:', error);
@@ -290,7 +291,7 @@ export default function AdvancedPeoplePage() {
 
   useEffect(() => {
     fetchData();
-    
+
     return () => {
       if (wsRef.current) {
         wsRef.current.close();
@@ -313,11 +314,10 @@ export default function AdvancedPeoplePage() {
         person.registrationCode?.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesType = !selectedType || selectedType === 'all' || person.type === selectedType;
-      const matchesStatus = !selectedStatus || selectedStatus === 'all' || person.status === selectedStatus;
 
-      return matchesSearch && matchesType && matchesStatus;
+      return matchesSearch && matchesType;
     });
-  }, [people, searchQuery, selectedType, selectedStatus]);
+  }, [people, searchQuery, selectedType]); // Removed selectedStatus dependency
 
   const handleBulkAction = async (action: string) => {
     if (selectedPeople.length === 0) {
@@ -328,7 +328,7 @@ export default function AdvancedPeoplePage() {
     try {
       let endpoint = '/api/admin/people';
       let method = 'POST';
-      
+
       switch (action) {
         case "confirm":
           await fetch(endpoint, {
@@ -338,7 +338,7 @@ export default function AdvancedPeoplePage() {
           });
           toast.success(`Confirmed ${selectedPeople.length} people`);
           break;
-        
+
         case "check_in":
           await fetch(endpoint, {
             method,
@@ -347,7 +347,7 @@ export default function AdvancedPeoplePage() {
           });
           toast.success(`Checked in ${selectedPeople.length} people`);
           break;
-        
+
         case "delete":
           const confirmDelete = window.confirm(`Delete ${selectedPeople.length} selected people?`);
           if (confirmDelete) {
@@ -360,7 +360,7 @@ export default function AdvancedPeoplePage() {
           }
           break;
       }
-      
+
       setSelectedPeople([]);
       fetchData();
     } catch (error) {
@@ -380,11 +380,11 @@ export default function AdvancedPeoplePage() {
       p.checkInStatus ? "Yes" : "No",
       new Date(p.createdAt).toLocaleString()
     ]);
-    
-    const csvContent = [headers, ...rows].map(row => 
+
+    const csvContent = [headers, ...rows].map(row =>
       row.map(cell => `"${cell}"`).join(",")
     ).join("\n");
-    
+
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -394,7 +394,7 @@ export default function AdvancedPeoplePage() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
+
     toast.success(`Exported ${filteredPeople.length} records`);
   };
 
@@ -437,24 +437,24 @@ export default function AdvancedPeoplePage() {
       const response = await fetch(`/api/admin/people/${personId}/confirm`, {
         method: 'POST'
       });
-      
+
       if (!response.ok) throw new Error('Failed to confirm');
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         // Update local state
-        setPeople(prev => prev.map(p => 
+        setPeople(prev => prev.map(p =>
           p._id === personId ? { ...p, isConfirmed: true, status: 'active' } : p
         ));
-        
+
         // Recalculate stats
         setStats(prev => ({
           ...prev,
           confirmed: prev.confirmed + 1,
           pending: prev.pending - 1
         }));
-        
+
         // Real-time update
         if (realTimeEnabled && wsRef.current?.readyState === WebSocket.OPEN) {
           wsRef.current.send(JSON.stringify({
@@ -462,7 +462,7 @@ export default function AdvancedPeoplePage() {
             data: { personId, isConfirmed: true }
           }));
         }
-        
+
         toast.success('Registration confirmed');
       } else {
         throw new Error(data.error || 'Failed to confirm');
@@ -478,27 +478,27 @@ export default function AdvancedPeoplePage() {
       const response = await fetch(`/api/admin/people/${personId}/checkin`, {
         method: 'POST'
       });
-      
+
       if (!response.ok) throw new Error('Failed to check in');
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         // Update local state
-        setPeople(prev => prev.map(p => 
-          p._id === personId ? { 
-            ...p, 
-            checkInStatus: true, 
-            checkInTime: new Date().toISOString() 
+        setPeople(prev => prev.map(p =>
+          p._id === personId ? {
+            ...p,
+            checkInStatus: true,
+            checkInTime: new Date().toISOString()
           } : p
         ));
-        
+
         // Recalculate stats
         setStats(prev => ({
           ...prev,
           checkedIn: prev.checkedIn + 1
         }));
-        
+
         // Real-time update
         if (realTimeEnabled && wsRef.current?.readyState === WebSocket.OPEN) {
           wsRef.current.send(JSON.stringify({
@@ -506,7 +506,7 @@ export default function AdvancedPeoplePage() {
             data: { personId, checkInStatus: true }
           }));
         }
-        
+
         toast.success('Checked in successfully');
       } else {
         throw new Error(data.error || 'Failed to check in');
@@ -546,7 +546,7 @@ export default function AdvancedPeoplePage() {
             Manage {stats.total} registrations • Updated: {lastUpdate.toLocaleTimeString()}
           </p>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <div className="flex items-center space-x-2">
             <Switch
@@ -561,7 +561,7 @@ export default function AdvancedPeoplePage() {
               </span>
             </Label>
           </div>
-          
+
           <Button
             onClick={fetchData}
             variant="outline"
@@ -570,7 +570,7 @@ export default function AdvancedPeoplePage() {
           >
             <RefreshCw className="w-4 h-4" />
           </Button>
-          
+
           <Button onClick={exportData} size="sm" className="bg-green-600 hover:bg-green-700">
             <Download className="w-4 h-4 mr-2" />
             Export
@@ -599,7 +599,7 @@ export default function AdvancedPeoplePage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Confirmed</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Confirmed (P&V)</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.confirmed}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   {stats.pending} pending
@@ -690,17 +690,6 @@ export default function AdvancedPeoplePage() {
                 </SelectContent>
               </Select>
 
-              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger className="w-[140px] bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
 
@@ -810,7 +799,7 @@ export default function AdvancedPeoplePage() {
                         className="rounded border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 checked:bg-green-600"
                       />
                     </td>
-                    
+
                     <td className="p-3">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8 bg-gray-100 dark:bg-gray-800">
@@ -828,20 +817,20 @@ export default function AdvancedPeoplePage() {
                         </div>
                       </div>
                     </td>
-                    
+
                     <td className="p-3">
                       <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 truncate max-w-[200px]">
                         <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
                         {person.email}
                       </div>
                     </td>
-                    
+
                     <td className="p-3">
                       <Badge className={getTypeColor(person.type)}>
                         {person.type}
                       </Badge>
                     </td>
-                    
+
                     <td className="p-3">
                       <div className="flex items-center gap-2">
                         <Badge className={getStatusColor(person.status)}>
@@ -852,7 +841,7 @@ export default function AdvancedPeoplePage() {
                         )}
                       </div>
                     </td>
-                    
+
                     <td className="p-3">
                       <div className="flex items-center gap-2">
                         <TooltipProvider>
@@ -872,27 +861,26 @@ export default function AdvancedPeoplePage() {
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
-                        
-                        {!person.isConfirmed && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => confirmPerson(person._id)}
-                                  className="h-8 w-8 p-0 hover:bg-green-100 dark:hover:bg-green-900/20"
-                                >
-                                  <CheckCircle className="w-4 h-4 text-green-600" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent className="bg-gray-900 dark:bg-gray-800 text-gray-100 dark:text-gray-300">
-                                <p>Confirm Registration</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
-                        
+
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                disabled={person.isConfirmed}
+                                onClick={() => !person.isConfirmed && confirmPerson(person._id)}
+                                className={`h-8 w-8 p-0 ${person.isConfirmed ? 'hover:bg-transparent opacity-50 cursor-not-allowed' : 'hover:bg-green-100 dark:hover:bg-green-900/20'}`}
+                              >
+                                <CheckCircle className={`w-4 h-4 ${person.isConfirmed ? 'text-gray-400' : 'text-green-600'}`} />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent className="bg-gray-900 dark:bg-gray-800 text-gray-100 dark:text-gray-300">
+                              <p>{person.isConfirmed ? "Already Confirmed" : "Confirm Registration"}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+
                         {!person.checkInStatus && person.isConfirmed && (
                           <TooltipProvider>
                             <Tooltip>
@@ -918,7 +906,7 @@ export default function AdvancedPeoplePage() {
                 ))}
               </tbody>
             </table>
-            
+
             {filteredPeople.length === 0 && (
               <div className="text-center py-12">
                 <Search className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-700 mb-4" />
@@ -955,7 +943,7 @@ export default function AdvancedPeoplePage() {
                 </div>
               </div>
             </DialogHeader>
-            
+
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -971,7 +959,7 @@ export default function AdvancedPeoplePage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Registration</p>
                   <div className="space-y-1">
@@ -987,7 +975,7 @@ export default function AdvancedPeoplePage() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Status</p>
@@ -1002,7 +990,7 @@ export default function AdvancedPeoplePage() {
                         {viewPerson.isConfirmed ? "Confirmed" : "Pending"}
                       </span>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       {viewPerson.checkInStatus ? (
                         <CheckCircle className="w-5 h-5 text-green-500" />
@@ -1017,7 +1005,7 @@ export default function AdvancedPeoplePage() {
                 </div>
               </div>
             </div>
-            
+
             <DialogFooter>
               <div className="flex items-center gap-2 w-full">
                 <Button
