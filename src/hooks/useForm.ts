@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import type { FormState, FormErrors } from "@/src/types";
+import type { FormErrors } from "@/src/types";
 
 interface UseFormOptions<T> {
     initialValues: T;
@@ -12,6 +12,7 @@ interface UseFormOptions<T> {
 /**
  * Custom hook for form state management and validation
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function useForm<T extends Record<string, any>>({
     initialValues,
     validate,
@@ -23,6 +24,7 @@ export function useForm<T extends Record<string, any>>({
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleChange = useCallback(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (name: keyof T, value: any) => {
             setValues((prev) => ({
                 ...prev,
@@ -89,6 +91,7 @@ export function useForm<T extends Record<string, any>>({
         setIsSubmitting(false);
     }, [initialValues]);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const setFieldValue = useCallback((name: keyof T, value: any) => {
         setValues((prev) => ({
             ...prev,

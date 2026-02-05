@@ -47,8 +47,8 @@ interface Registration {
   customMinistry?: string;
   departments?: string[];
   isConfirmed: boolean;
-  attendanceChecked: boolean;
-  checkedInAt?: string;
+  checkInStatus: boolean;
+  checkInTime?: string;
   createdAt: string;
 }
 
@@ -113,8 +113,8 @@ function ConfirmContent() {
           const updatedRegistrations = searchResult.registrations.map(reg =>
             reg._id === registrationId ? {
               ...reg,
-              attendanceChecked: true,
-              checkedInAt: new Date().toISOString()
+              checkInStatus: true,
+              checkInTime: new Date().toISOString()
             } : reg
           );
           setSearchResult({
@@ -145,6 +145,7 @@ function ConfirmContent() {
   };
 
   const getDepartmentIcon = (dept: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const icons: Record<string, any> = {
       'media': '📷',
       'protocol': '🎖️',
@@ -161,6 +162,7 @@ function ConfirmContent() {
   };
 
   const getMinistryIcon = (ministry: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const icons: Record<string, any> = {
       'worship': '🎵',
       'prayer': '🙏',
@@ -320,7 +322,7 @@ function ConfirmContent() {
                     </h3>
                     {searchResult.count > 0 && (
                       <Badge variant="outline" className="text-sm">
-                        {searchResult.registrations.filter(r => r.attendanceChecked).length} Checked In
+                        {searchResult.registrations.filter(r => r.checkInStatus).length} Checked In
                       </Badge>
                     )}
                   </div>
@@ -379,7 +381,7 @@ function ConfirmContent() {
                                         Confirmed
                                       </Badge>
 
-                                      {reg.attendanceChecked && (
+                                      {reg.checkInStatus && (
                                         <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">
                                           <CheckSquare className="w-3 h-3 mr-1" />
                                           Checked In
@@ -469,14 +471,14 @@ function ConfirmContent() {
                                 </div>
 
                                 {/* Check-in Time */}
-                                {reg.checkedInAt && (
+                                {reg.checkInTime && (
                                   <div className="text-sm text-gray-500">
                                     <div className="flex items-center gap-2 mb-1">
                                       <Clock className="w-4 h-4" />
                                       <span>Checked In:</span>
                                     </div>
                                     <div className="text-gray-700 font-medium">
-                                      {formatDate(reg.checkedInAt)}
+                                      {formatDate(reg.checkInTime)}
                                     </div>
                                   </div>
                                 )}
@@ -494,7 +496,7 @@ function ConfirmContent() {
                                   </Button>
 
                                   {/* Check-in button */}
-                                  {!reg.attendanceChecked ? (
+                                  {!reg.checkInStatus ? (
                                     <Button
                                       onClick={() => handleCheckIn(reg._id, reg.registrationCode)}
                                       disabled={isCheckingIn === reg._id}

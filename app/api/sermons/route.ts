@@ -51,3 +51,42 @@ export async function POST(req: NextRequest) {
         );
     }
 }
+export async function GET(req: NextRequest) {
+    try {
+        await connectToDatabase();
+
+        const { searchParams } = new URL(req.url);
+        const category = searchParams.get("category");
+        const search = searchParams.get("search");
+
+        let query: any = { isPublished: true };
+
+        if (category && category !== "all") {
+            query.category = category;
+        }
+
+        if (search) {
+            query.$or = [
+                { title: { $regex: search, $options: "i" } },
+                { speaker: { $regex: search, $options: "i" } },
+                { description: { $regex: search, $options: "i" } },
+            ];
+        }
+
+        const sermons = await Sermon.find(query).sort({ date: -1 }).lean();
+
+        return NextResponse.json({
+            success: true,
+            data: sermons,
+        });
+    } catch (error) {
+        console.error("Error fetching sermons:", error);
+        return NextResponse.json(
+            {
+                success: false,
+                message: "Failed to fetch sermons",
+            },
+            { status: 500 }
+        );
+    }
+}

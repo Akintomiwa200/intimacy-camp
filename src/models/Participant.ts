@@ -17,6 +17,8 @@ export interface IParticipant extends Document {
     registrationCode: string;
     isConfirmed: boolean;
     emailSent: boolean;
+    checkInStatus: boolean;
+    checkInTime?: Date;
     createdAt: Date;
 }
 
@@ -31,12 +33,14 @@ const ParticipantSchema = new Schema<IParticipant>({
     isLeader: { type: String, required: true, enum: ['yes', 'no'] },
     ministry: {
         type: String,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         required: function (this: any) {
             return this.isLeader === 'yes';
         }
     },
     customMinistry: {
         type: String,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         required: function (this: any) {
             return this.isLeader === 'yes' && this.ministry === 'other';
         }
@@ -47,6 +51,8 @@ const ParticipantSchema = new Schema<IParticipant>({
     registrationCode: { type: String, required: true, unique: true },
     isConfirmed: { type: Boolean, default: true },
     emailSent: { type: Boolean, default: false },
+    checkInStatus: { type: Boolean, default: false },
+    checkInTime: { type: Date },
     createdAt: { type: Date, default: Date.now },
 });
 

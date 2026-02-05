@@ -38,24 +38,24 @@ export function AboutSection() {
                                 About The Retreat
                             </span>
                         </div>
-                        
+
                         <h2 className="text-4xl md:text-5xl font-bold text-white">
                             The Intimacy Camp 2026:<br />
                             <span className="text-green-500">
-                                Encountering God's Presence
+                                Encountering God&apos;s Presence
                             </span>
                         </h2>
-                        
+
                         <p className="text-lg text-gray-400">
-                            The Intimacy Camp is a transformative retreat designed to draw believers into 
-                            deeper intimacy with God. Based on Psalms 24:6, we are raising a generation 
-                            that seeks God's face, not just His hands—the Jacob Generation who will carry 
-                            God's glory into the nations.
+                            The Intimacy Camp is a transformative retreat designed to draw believers into
+                            deeper intimacy with God. Based on Psalms 24:6, we are raising a generation
+                            that seeks God&apos;s face, not just His hands—the Jacob Generation who will carry
+                            God&apos;s glory into the nations.
                         </p>
-                        
+
                         <p className="text-lg text-gray-400">
-                            This three-day retreat in Ago-Iwowe, Ogun State, Nigeria, is a divine appointment 
-                            for spiritual refreshing, personal revival, and corporate awakening. Experience 
+                            This three-day retreat in Ago-Iwowe, Ogun State, Nigeria, is a divine appointment
+                            for spiritual refreshing, personal revival, and corporate awakening. Experience
                             the power of God in an atmosphere of worship, prayer, and prophetic impartation.
                         </p>
 
@@ -82,13 +82,12 @@ export function AboutSection() {
                             <p className="text-green-400 font-bold mb-2 text-sm uppercase tracking-wide">SCRIPTURE FOCUS</p>
                             <p className="text-white text-lg font-medium mb-2">Psalms 24:6</p>
                             <p className="text-gray-300 italic">
-                                "This is the generation of those who seek Him, who seek Your face, O God of Jacob."
+                                &quot;This is the generation of those who seek Him, who seek Your face, O God of Jacob.&quot;
                             </p>
                         </div>
 
-                        {/* Highlights */}
                         <div className="pt-4">
-                            <h3 className="text-xl font-bold text-white mb-4">What You'll Experience</h3>
+                            <h3 className="text-xl font-bold text-white mb-4">What You&apos;ll Experience</h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {highlights.map((highlight, index) => (
                                     <motion.div
@@ -129,7 +128,7 @@ export function AboutSection() {
                                         Prepare for a life-changing encounter with God
                                     </p>
                                 </div>
-                                
+
                                 {/* Schedule Preview */}
                                 <div className="w-full max-w-md space-y-4">
                                     <div className="bg-green-900/30 p-4 rounded-xl border border-green-500/10">
@@ -141,7 +140,7 @@ export function AboutSection() {
                                             Evening Revival Service: The Fire Altar
                                         </p>
                                     </div>
-                                    
+
                                     <div className="bg-gray-800/50 p-4 rounded-xl border border-gray-700/50">
                                         <div className="flex items-center justify-between mb-2">
                                             <p className="text-white font-bold">Day 2</p>
@@ -151,7 +150,7 @@ export function AboutSection() {
                                             Morning Prayer · Teaching Sessions · Night of Prophetic Impartation
                                         </p>
                                     </div>
-                                    
+
                                     <div className="bg-green-900/30 p-4 rounded-xl border border-green-500/10">
                                         <div className="flex items-center justify-between mb-2">
                                             <p className="text-white font-bold">Day 3</p>
@@ -177,7 +176,7 @@ export function AboutSection() {
                         {/* Decorative Elements */}
                         <div className="absolute -top-4 -right-4 w-24 h-24 bg-green-600 rounded-full blur-3xl opacity-20" />
                         <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-green-800 rounded-full blur-3xl opacity-20" />
-                        
+
                         {/* Floating elements */}
                         <div className="absolute -top-2 left-8 w-4 h-4 bg-green-500/50 rounded-full animate-pulse" />
                         <div className="absolute top-12 -right-2 w-3 h-3 bg-green-400/30 rounded-full animate-pulse delay-300" />

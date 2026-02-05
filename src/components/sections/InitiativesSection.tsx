@@ -55,22 +55,22 @@ We believe in the marriage of PRAYER & The WORD for the growth and transformatio
         color: "bg-[#1a2b2b]",
         focus: "City-wide revival and transformation"
     },
-//     {
-//         id: 4,
-//         title: "YMR Samaritan",
-//         shortDescription: "Supporting participants through education, empowerment and healthcare.",
-//         fullDescription: `YMR Samaritan is the compassionate arm of The Mighty Men of David initiative, dedicated to supporting YMR participants and their communities through practical assistance.
+    //     {
+    //         id: 4,
+    //         title: "YMR Samaritan",
+    //         shortDescription: "Supporting participants through education, empowerment and healthcare.",
+    //         fullDescription: `YMR Samaritan is the compassionate arm of The Mighty Men of David initiative, dedicated to supporting YMR participants and their communities through practical assistance.
 
-// Our focus areas include:
-// - Education: Scholarships, educational materials, and learning support
-// - Empowerment: Skill acquisition, vocational training, and business support
-// - Healthcare: Medical assistance, health education, and wellness programs
+    // Our focus areas include:
+    // - Education: Scholarships, educational materials, and learning support
+    // - Empowerment: Skill acquisition, vocational training, and business support
+    // - Healthcare: Medical assistance, health education, and wellness programs
 
-// This initiative embodies the love of Christ by meeting practical needs while sharing the gospel message, ensuring that no one is left behind in our pursuit of raising mighty men for God.`,
-//         image: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=80",
-//         color: "bg-[#f2f1e8]",
-//         focusAreas: ["Education", "Empowerment", "Healthcare"]
-//     }
+    // This initiative embodies the love of Christ by meeting practical needs while sharing the gospel message, ensuring that no one is left behind in our pursuit of raising mighty men for God.`,
+    //         image: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=80",
+    //         color: "bg-[#f2f1e8]",
+    //         focusAreas: ["Education", "Empowerment", "Healthcare"]
+    //     }
 ];
 
 interface ModalProps {
@@ -125,13 +125,12 @@ function InitiativeModal({ initiative, isOpen, onClose }: ModalProps) {
                 <div className="p-8">
                     <div className="prose prose-invert max-w-none">
                         {initiative.fullDescription.split('\n\n').map((paragraph, idx) => (
-                            <p 
-                                key={idx} 
-                                className={`mb-4 leading-relaxed ${
-                                    initiative.color === "bg-[#f2f1e8]" 
-                                        ? "text-gray-700" 
+                            <p
+                                key={idx}
+                                className={`mb-4 leading-relaxed ${initiative.color === "bg-[#f2f1e8]"
+                                        ? "text-gray-700"
                                         : "text-white/90"
-                                }`}
+                                    }`}
                             >
                                 {paragraph}
                             </p>
@@ -142,26 +141,23 @@ function InitiativeModal({ initiative, isOpen, onClose }: ModalProps) {
                     <div className="mt-8 pt-8 border-t border-white/20">
                         {initiative.contact && (
                             <div className="mb-6">
-                                <h4 className={`font-bold mb-3 ${
-                                    initiative.color === "bg-[#f2f1e8]" 
-                                        ? "text-gray-900" 
+                                <h4 className={`font-bold mb-3 ${initiative.color === "bg-[#f2f1e8]"
+                                        ? "text-gray-900"
                                         : "text-white"
-                                }`}>
+                                    }`}>
                                     Contact Information
                                 </h4>
                                 <div className="space-y-2">
-                                    <p className={`${
-                                        initiative.color === "bg-[#f2f1e8]" 
-                                            ? "text-gray-700" 
+                                    <p className={`${initiative.color === "bg-[#f2f1e8]"
+                                            ? "text-gray-700"
                                             : "text-white/80"
-                                    }`}>
+                                        }`}>
                                         📧 {initiative.contact.email}
                                     </p>
-                                    <p className={`${
-                                        initiative.color === "bg-[#f2f1e8]" 
-                                            ? "text-gray-700" 
+                                    <p className={`${initiative.color === "bg-[#f2f1e8]"
+                                            ? "text-gray-700"
                                             : "text-white/80"
-                                    }`}>
+                                        }`}>
                                         📱 {initiative.contact.phone}
                                     </p>
                                 </div>
@@ -169,24 +165,21 @@ function InitiativeModal({ initiative, isOpen, onClose }: ModalProps) {
                         )}
 
                         {initiative.scripture && (
-                            <div className={`p-4 rounded-xl ${
-                                initiative.color === "bg-[#f2f1e8]" 
-                                    ? "bg-green-50" 
+                            <div className={`p-4 rounded-xl ${initiative.color === "bg-[#f2f1e8]"
+                                    ? "bg-green-50"
                                     : "bg-white/10"
-                            }`}>
-                                <p className={`font-bold mb-2 ${
-                                    initiative.color === "bg-[#f2f1e8]" 
-                                        ? "text-green-800" 
-                                        : "text-white"
                                 }`}>
+                                <p className={`font-bold mb-2 ${initiative.color === "bg-[#f2f1e8]"
+                                        ? "text-green-800"
+                                        : "text-white"
+                                    }`}>
                                     Key Scripture
                                 </p>
-                                <p className={`italic ${
-                                    initiative.color === "bg-[#f2f1e8]" 
-                                        ? "text-gray-700" 
+                                <p className={`italic ${initiative.color === "bg-[#f2f1e8]"
+                                        ? "text-gray-700"
                                         : "text-white/90"
-                                }`}>
-                                    "{initiative.scripture}"
+                                    }`}>
+                                    &quot;{initiative.scripture}&quot;
                                 </p>
                             </div>
                         )}

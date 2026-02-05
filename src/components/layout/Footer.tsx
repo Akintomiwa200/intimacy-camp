@@ -2,8 +2,9 @@
 
 
 
-import react, { useState } from "react";
-import { Heart, Mail, Phone, MapPin, Facebook, Instagram, Twitter, Linkedin, Youtube } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { Heart, Mail, Phone, Facebook, Instagram, Youtube } from "lucide-react";
 
 
 
@@ -11,15 +12,14 @@ export default function Footer() {
 
 
 
-const [email, setEmail] = useState("");
-const [loading, setLoading] = useState(false);
-const [message, setMessage] = useState("");
+    const [email, setEmail] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState("");
 
 
 
 
 
-    const currentYear = new Date().getFullYear();
     const APP_NAME = "Intimacy Camp";
 
     return (
@@ -43,7 +43,7 @@ const [message, setMessage] = useState("");
                             </span>
                         </div>
                         <p className="text-sm text-gray-400 leading-relaxed max-w-xs">
-                          The Mighty Men of David is dedicated to raising a burning generation of passionate leaders, empowering them to impact the world for God
+                            The Mighty Men of David is dedicated to raising a burning generation of passionate leaders, empowering them to impact the world for God
                         </p>
                         <div className="space-y-3">
                             <div className="flex items-center gap-3">
@@ -52,7 +52,7 @@ const [message, setMessage] = useState("");
                                     href="mailto: thedavidiccompany1@gmail.com"
                                     className="text-sm text-gray-300 hover:text-purple-400 transition-colors"
                                 >
-                                     thedavidiccompany1@gmail.com 
+                                    thedavidiccompany1@gmail.com
                                 </a>
                             </div>
                             <div className="flex items-center gap-3">
@@ -72,29 +72,37 @@ const [message, setMessage] = useState("");
                         <h3 className="text-white font-bold text-lg mb-6">Quick Links</h3>
                         <ul className="space-y-3">
                             <li>
-                                <a
+                                <Link
                                     href="/"
                                     className="text-gray-300 hover:text-purple-400 transition-colors text-sm"
                                 >
                                     Homepage
-                                </a>
+                                </Link>
                             </li>
                             <li>
-                                <a
+                                <Link
                                     href="/about"
                                     className="text-gray-300 hover:text-purple-400 transition-colors text-sm"
                                 >
                                     About Us
-                                </a>
+                                </Link>
                             </li>
-                          
+
                             <li>
-                                <a
+                                <Link
+                                    href="/sermons"
+                                    className="text-gray-300 hover:text-purple-400 transition-colors text-sm"
+                                >
+                                    Sermons Library
+                                </Link>
+                            </li>
+                            <li>
+                                <Link
                                     href="/partner"
                                     className="text-gray-300 hover:text-purple-400 transition-colors text-sm"
                                 >
                                     Partner
-                                </a>
+                                </Link>
                             </li>
                         </ul>
                     </div>
@@ -104,31 +112,31 @@ const [message, setMessage] = useState("");
                         <h3 className="text-white font-bold text-lg mb-6">Community</h3>
                         <ul className="space-y-3">
                             <li>
-                                <a
+                                <Link
                                     href="/login"
                                     className="text-gray-300 hover:text-purple-400 transition-colors text-sm"
                                 >
                                     Log In
-                                </a>
+                                </Link>
                             </li>
                             <li>
-                                <a
+                                <Link
                                     href="/register"
                                     className="text-gray-300 hover:text-purple-400 transition-colors text-sm"
                                 >
                                     Register
-                                </a>
+                                </Link>
                             </li>
-                            
+
                             <li>
-                                <a
+                                <Link
                                     href="/activity"
                                     className="text-gray-300 hover:text-purple-400 transition-colors text-sm"
                                 >
                                     Activity
-                                </a>
+                                </Link>
                             </li>
-                           
+
                         </ul>
                     </div>
 
@@ -147,7 +155,7 @@ const [message, setMessage] = useState("");
                             >
                                 <Facebook className="w-5 h-5" />
                             </a>
-                           {/* <a
+                            {/* <a
                                 href="https://twitter.com"
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -171,50 +179,50 @@ const [message, setMessage] = useState("");
                             >
                                 <Youtube className="w-5 h-5" />
                             </a>
-                            
+
                         </div>
                         <form
-    className="flex"
-    onSubmit={async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setMessage("");
+                            className="flex"
+                            onSubmit={async (e) => {
+                                e.preventDefault();
+                                setLoading(true);
+                                setMessage("");
 
-        const res = await fetch("/api/newsletter", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email }),
-        });
+                                const res = await fetch("/api/newsletter", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ email }),
+                                });
 
-        const data = await res.json();
-        setMessage(data.message);
-        setLoading(false);
-        setEmail("");
-    }}
->
-    <input
-        type="email"
-        required
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Email"
-        className="flex-1 px-6 py-4 rounded-l-full bg-white text-gray-900 text-sm md:text-xl focus:outline-none"
-    />
+                                const data = await res.json();
+                                setMessage(data.message);
+                                setLoading(false);
+                                setEmail("");
+                            }}
+                        >
+                            <input
+                                type="email"
+                                required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="Email"
+                                className="flex-1 px-6 py-4 rounded-l-full bg-white text-gray-900 text-sm md:text-xl focus:outline-none"
+                            />
 
-    <button
-        type="submit"
-        disabled={loading}
-        className="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-r-full transition-colors flex items-center justify-center disabled:opacity-50"
-    >
-        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-        </svg>
-    </button>
-</form>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-r-full transition-colors flex items-center justify-center disabled:opacity-50"
+                            >
+                                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                </svg>
+                            </button>
+                        </form>
 
-{message && (
-    <p className="text-sm mt-3 text-green-400">{message}</p>
-)}
+                        {message && (
+                            <p className="text-sm mt-3 text-green-400">{message}</p>
+                        )}
 
                     </div>
                 </div>

@@ -34,16 +34,16 @@ export function VisionMissionSection() {
                 >
                     {/* Placeholder for image - replace with actual image path */}
                     <div className="absolute inset-0 bg-gradient-to-br from-green-900/20 to-gray-900/40" />
-                    
+
                     {/* You can add a placeholder image or use a real one */}
                     <div className="absolute inset-0 bg-gradient-to-r from-green-900/10 via-gray-900/20 to-green-900/10" />
-                    
+
                     {/* Sample pattern overlay */}
                     <div className="absolute inset-0 bg-[url('/images/pattern.svg')] opacity-5" />
 
                     {/* Info Overlay */}
                     <div className="absolute inset-x-0 bottom-0 p-8 md:p-12 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-                        
+
                         {/* Event Details */}
                         <div>
                             <div className="text-green-500 font-bold mb-2">APRIL 5TH – 7TH, 2026</div>
@@ -99,14 +99,14 @@ export function VisionMissionSection() {
 
                                 <p>
                                     <span className="text-white font-semibold">2.</span> And it shall come to pass in the last days,
-                                    that the mountain of the LORD's house shall be established in the top of the mountains,
+                                    that the mountain of the LORD&apos;s house shall be established in the top of the mountains,
                                     and shall be exalted above the hills; and all nations shall flow unto it.
                                 </p>
 
                                 <p>
                                     <span className="text-white font-semibold">3.</span> And many people shall go and say,
-                                    "Come, let us go up to the mountain of the LORD, to the house of the God of Jacob;
-                                    He will teach us His ways, and we will walk in His paths."
+                                    &quot;Come, let us go up to the mountain of the LORD, to the house of the God of Jacob;
+                                    He will teach us His ways, and we will walk in His paths.&quot;
                                     For out of Zion shall go forth the law, and the word of the LORD from Jerusalem.
                                 </p>
                             </div>
@@ -149,7 +149,7 @@ export function VisionMissionSection() {
                             <div>
                                 <h4 className="text-gray-900 text-xl font-bold mb-2">We Are Vision-minded</h4>
                                 <p className="text-gray-600 text-sm leading-relaxed">
-                                     With a desire to see the gospel of the Kingdom pervade every heart and space, we pursue genuine kingdom impact with all diligence and excellence.
+                                    With a desire to see the gospel of the Kingdom pervade every heart and space, we pursue genuine kingdom impact with all diligence and excellence.
                                 </p>
                             </div>
                         </div>

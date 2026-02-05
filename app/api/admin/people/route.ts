@@ -231,6 +231,8 @@ export async function GET(request: NextRequest) {
       // Add fallback fields for frontend compatibility
       status: person.status || (person.isConfirmed ? 'active' : 'pending'),
       type: person.type || 'participant',
+      checkInStatus: person.checkInStatus || person.attendanceChecked || false,
+      checkInTime: person.checkInTime || person.checkedInAt || null,
       // Ensure required fields exist
       campDate: person.campDate || null,
       emergencyContact: person.emergencyContact || null,

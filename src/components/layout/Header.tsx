@@ -1,4 +1,4 @@
-    "use client";
+"use client";
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -24,6 +24,7 @@ export function Header() {
 
     const navLinks = [
         { href: ROUTES.HOME, label: "Home" },
+        { href: "/sermons", label: "Sermons" },
         { href: "/about", label: "About" },
         { href: "#events", label: "Events" },
         { href: "#counselling", label: "Counselling" },
@@ -41,31 +42,31 @@ export function Header() {
         >
             <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
-                   {/* Logo Section */}
-<Link
-    href="/some-other-route" // <-- change this to the route you want
-    className="flex items-center gap-3"
->
-    {/* Logo Image */}
-    <div className="relative w-12 h-12">
-        <Image
-            src="/images/20230803_194307_0000.png" // <-- your logo file
-            alt="Intimacy Camp Logo"
-            fill
-            className="object-contain"
-        />
-    </div>
+                    {/* Logo Section */}
+                    <Link
+                        href="/some-other-route" // <-- change this to the route you want
+                        className="flex items-center gap-3"
+                    >
+                        {/* Logo Image */}
+                        <div className="relative w-12 h-12">
+                            <Image
+                                src="/images/20230803_194307_0000.png" // <-- your logo file
+                                alt="Intimacy Camp Logo"
+                                fill
+                                className="object-contain"
+                            />
+                        </div>
 
-    {/* Text Name */}
-    <span
-        className={cn(
-            "text-2xl font-bold transition-colors",
-            isScrolled ? "text-gray-900 dark:text-white" : "text-white"
-        )}
-    >
-        The Mighty Men Of David
-    </span>
-</Link>
+                        {/* Text Name */}
+                        <span
+                            className={cn(
+                                "text-2xl font-bold transition-colors",
+                                isScrolled ? "text-gray-900 dark:text-white" : "text-white"
+                            )}
+                        >
+                            The Mighty Men Of David
+                        </span>
+                    </Link>
 
 
                     {/* Desktop Navigation */}

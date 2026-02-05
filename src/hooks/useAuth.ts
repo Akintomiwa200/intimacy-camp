@@ -15,8 +15,10 @@ export function useAuth() {
     // Load user from localStorage on mount
     useEffect(() => {
         const currentUser = authService.getCurrentUser();
-        setUser(currentUser);
-        setIsLoading(false);
+        Promise.resolve().then(() => {
+            setUser(currentUser);
+            setIsLoading(false);
+        });
     }, []);
 
     const login = useCallback(async (credentials: LoginCredentials) => {
