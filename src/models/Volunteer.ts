@@ -53,9 +53,9 @@ const VolunteerSchema = new Schema<IVolunteer>({
         required: true,
         validate: {
             validator: function (v: string[]) {
-                return v.length > 0 && v.length <= 2;
+                return v.length === 1;
             },
-            message: 'Please select 1-2 departments'
+            message: 'Please select exactly 1 department'
         }
     },
     confirmationToken: { type: String },

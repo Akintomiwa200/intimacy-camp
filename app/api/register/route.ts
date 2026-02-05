@@ -68,14 +68,12 @@ function validateVolunteerData(data: any): { isValid: boolean; errors: string[] 
   const errors = [...participantValidation.errors];
 
   // Departments validation
-  if (!data.departments || !Array.isArray(data.departments) || data.departments.length === 0) {
-    errors.push('At least one department must be selected');
-  } else if (data.departments.length > 2) {
-    errors.push('Maximum 2 departments can be selected');
+  if (!data.departments || !Array.isArray(data.departments) || data.departments.length !== 1) {
+    errors.push('Exactly one department must be selected');
   }
 
   // Validate department IDs
-  const validDepartments = ['media', 'protocol', 'logistics', 'welfare', 'technical', 'security', 'registration', 'prayer', 'creative', 'medical'];
+  const validDepartments = ['media', 'protocol', 'logistics', 'welfare', 'technical', 'music', 'registration', 'prayer', 'creative', 'medical'];
   data.departments?.forEach((dept: string) => {
     if (!validDepartments.includes(dept)) {
       errors.push(`Invalid department: ${dept}`);
