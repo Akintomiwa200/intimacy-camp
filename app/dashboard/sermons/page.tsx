@@ -1,14 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Upload, Plus, Loader2 } from "lucide-react";
+import { Upload, Plus, Loader2, Trash2, Eye, Download } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card";
 import { Input } from "@/src/components/ui/input";
+import { Badge } from "@/src/components/ui/badge";
+
+interface Sermon {
+    _id: string;
+    title: string;
+    preacher: string;
+    date: string;
+    views: number;
+    downloads: number;
+    videoUrl?: string;
+    audioUrl?: string;
+}
 
 export default function SermonsPage() {
     const [uploading, setUploading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [sermons, setSermons] = useState<Sermon[]>([]);
     const [formData, setFormData] = useState({
         title: "",
         description: "",
@@ -18,6 +32,45 @@ export default function SermonsPage() {
     });
     const [videoFile, setVideoFile] = useState<File | null>(null);
     const [audioFile, setAudioFile] = useState<File | null>(null);
+
+    // Fetch sermons on component mount
+    useEffect(() => {
+        fetchSermons();
+    }, []);
+
+    const fetchSermons = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch("/api/admin/dashboard");
+            const data = await response.json();
+
+            if (data.success) {
+                setSermons(data.data.recent?.sermons || []);
+            }
+        } catch (error) {
+            console.error("Error fetching sermons:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDelete = async (sermonId: string) => {
+        if (!confirm("Are you sure you want to delete this sermon?")) return;
+
+        try {
+            const response = await fetch(`/api/dashboard/content?type=sermons&id=${sermonId}`, {
+                method: "DELETE",
+            });
+
+            if (response.ok) {
+                // Refresh sermons list
+                fetchSermons();
+            }
+        } catch (error) {
+            console.error("Error deleting sermon:", error);
+            alert("Failed to delete sermon");
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -61,15 +114,34 @@ export default function SermonsPage() {
                 }
             }
 
-            // Create sermon record (API route to be created)
+            // Create sermon record in database
             const sermonData = {
-                ...formData,
+                title: formData.title,
+                description: formData.description,
+                speaker: formData.speaker,
+                date: formData.date,
+                category: formData.category,
                 videoUrl,
                 audioUrl,
             };
 
-            console.log("Sermon data:", sermonData);
-            alert("Sermon uploaded successfully!");
+            const saveResponse = await fetch("/api/sermons", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(sermonData),
+            });
+
+            const saveData = await saveResponse.json();
+
+            if (saveData.success) {
+                alert("Sermon uploaded and saved successfully!");
+                // Refresh sermons list
+                fetchSermons();
+            } else {
+                alert(`Failed to save sermon: ${saveData.message}`);
+            }
 
             // Reset form
             setFormData({
@@ -215,14 +287,60 @@ export default function SermonsPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Recent Sermons</CardTitle>
-                        <CardDescription>Latest uploaded sermons</CardDescription>
+                        <CardDescription>
+                            {sermons.length} sermon{sermons.length !== 1 ? 's' : ''} uploaded
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-center text-gray-500 py-12">
-                            <Upload className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                            <p>No sermons uploaded yet</p>
-                            <p className="text-sm mt-2">Upload your first sermon to get started</p>
-                        </div>
+                        {loading ? (
+                            <div className="text-center py-12">
+                                <Loader2 className="w-8 h-8 mx-auto mb-4 animate-spin text-green-600" />
+                                <p className="text-gray-500">Loading sermons...</p>
+                            </div>
+                        ) : sermons.length === 0 ? (
+                            <div className="text-center text-gray-500 py-12">
+                                <Upload className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                                <p>No sermons uploaded yet</p>
+                                <p className="text-sm mt-2">Upload your first sermon to get started</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {sermons.map((sermon) => (
+                                    <div
+                                        key={sermon._id}
+                                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors"
+                                    >
+                                        <div className="flex-1">
+                                            <h4 className="font-semibold text-lg">{sermon.title}</h4>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                                {sermon.preacher}
+                                            </p>
+                                            <div className="flex gap-4 mt-2 text-sm text-gray-500">
+                                                <span className="flex items-center gap-1">
+                                                    <Eye className="w-4 h-4" />
+                                                    {(sermon.views || 0).toLocaleString()} views
+                                                </span>
+                                                <span className="flex items-center gap-1">
+                                                    <Download className="w-4 h-4" />
+                                                    {(sermon.downloads || 0).toLocaleString()} downloads
+                                                </span>
+                                                <span>
+                                                    {new Date(sermon.date).toLocaleDateString()}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                            onClick={() => handleDelete(sermon._id)}
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>

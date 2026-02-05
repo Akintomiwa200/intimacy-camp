@@ -1,19 +1,69 @@
 "use client";
 
-import { useState } from "react";
-import { Upload, Video, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Upload, Video, Loader2, Trash2, Eye } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card";
 import { Input } from "@/src/components/ui/input";
+import { Badge } from "@/src/components/ui/badge";
+
+interface MediaClip {
+    _id: string;
+    title: string;
+    type: string;
+    category: string;
+    views: number;
+    url?: string;
+}
 
 export default function MediaPage() {
     const [uploading, setUploading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [mediaClips, setMediaClips] = useState<MediaClip[]>([]);
     const [formData, setFormData] = useState({
         title: "",
         description: "",
         type: "short",
     });
     const [mediaFile, setMediaFile] = useState<File | null>(null);
+
+    // Fetch media clips on component mount
+    useEffect(() => {
+        fetchMediaClips();
+    }, []);
+
+    const fetchMediaClips = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch("/api/admin/dashboard");
+            const data = await response.json();
+
+            if (data.success) {
+                setMediaClips(data.data.recent?.mediaClips || []);
+            }
+        } catch (error) {
+            console.error("Error fetching media clips:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDelete = async (clipId: string) => {
+        if (!confirm("Are you sure you want to delete this media clip?")) return;
+
+        try {
+            const response = await fetch(`/api/dashboard/content?type=media&id=${clipId}`, {
+                method: "DELETE",
+            });
+
+            if (response.ok) {
+                fetchMediaClips();
+            }
+        } catch (error) {
+            console.error("Error deleting media clip:", error);
+            alert("Failed to delete media clip");
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -33,9 +83,35 @@ export default function MediaPage() {
 
             const data = await response.json();
             if (data.success) {
-                alert("Media uploaded successfully!");
+                // Save media clip to database
+                const mediaData = {
+                    title: formData.title,
+                    description: formData.description,
+                    type: formData.type,
+                    url: data.data.url,
+                };
+
+                const saveResponse = await fetch("/api/media", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(mediaData),
+                });
+
+                const saveData = await saveResponse.json();
+
+                if (saveData.success) {
+                    alert("Media uploaded and saved successfully!");
+                    fetchMediaClips();
+                } else {
+                    alert(`Failed to save media: ${saveData.message}`);
+                }
+
                 setFormData({ title: "", description: "", type: "short" });
                 setMediaFile(null);
+            } else {
+                alert("Failed to upload media to Cloudinary");
             }
         } catch (error) {
             console.error("Upload error:", error);
@@ -127,13 +203,57 @@ export default function MediaPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Recent Media</CardTitle>
-                        <CardDescription>Latest uploaded media</CardDescription>
+                        <CardDescription>
+                            {mediaClips.length} media clip{mediaClips.length !== 1 ? 's' : ''} uploaded
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-center text-gray-500 py-12">
-                            <Video className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                            <p>No media uploaded yet</p>
-                        </div>
+                        {loading ? (
+                            <div className="text-center py-12">
+                                <Loader2 className="w-8 h-8 mx-auto mb-4 animate-spin text-green-600" />
+                                <p className="text-gray-500">Loading media...</p>
+                            </div>
+                        ) : mediaClips.length === 0 ? (
+                            <div className="text-center text-gray-500 py-12">
+                                <Video className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                                <p>No media uploaded yet</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {mediaClips.map((clip) => (
+                                    <div
+                                        key={clip._id}
+                                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors"
+                                    >
+                                        <div className="flex-1">
+                                            <h4 className="font-semibold text-lg">{clip.title}</h4>
+                                            <div className="flex gap-2 mt-2">
+                                                <Badge variant="outline" className="capitalize">
+                                                    {clip.type}
+                                                </Badge>
+                                                <Badge variant="secondary">
+                                                    {clip.category}
+                                                </Badge>
+                                            </div>
+                                            <div className="flex gap-4 mt-2 text-sm text-gray-500">
+                                                <span className="flex items-center gap-1">
+                                                    <Eye className="w-4 h-4" />
+                                                    {clip.views.toLocaleString()} views
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                            onClick={() => handleDelete(clip._id)}
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>

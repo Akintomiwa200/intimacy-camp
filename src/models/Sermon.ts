@@ -12,6 +12,7 @@ export interface ISermon extends Document {
     category: "sermon" | "teaching" | "worship";
     isPublished: boolean;
     views: number;
+    downloads: number;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -56,6 +57,10 @@ const SermonSchema = new Schema<ISermon>(
             default: false,
         },
         views: {
+            type: Number,
+            default: 0,
+        },
+        downloads: {
             type: Number,
             default: 0,
         },

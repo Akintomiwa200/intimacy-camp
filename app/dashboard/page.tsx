@@ -130,11 +130,10 @@ interface Volunteer {
   firstName: string;
   lastName: string;
   email: string;
-  // departments replaces role
   departments: string[];
-  role?: string; // specific role if mapped, otherwise use departments
+  role?: string;
   status: 'active' | 'inactive';
-  skills: string[];
+  skills?: string[]; // Changed from skills: string[] to skills?: string[]
   createdAt: string;
 }
 
@@ -250,7 +249,15 @@ export default function AdminDashboardPage() {
       if (data.success) {
         setStats(data.data.stats);
         setParticipants(data.data.recent?.participants || []);
-        setVolunteers(data.data.recent?.volunteers || []);
+
+        // Ensure volunteers have skills array
+        const processedVolunteers = data.data.recent?.volunteers?.map((volunteer: any) => ({
+          ...volunteer,
+          skills: volunteer.skills || [], // Ensure skills is always an array
+          departments: volunteer.departments || [], // Ensure departments is always an array
+        })) || [];
+
+        setVolunteers(processedVolunteers);
         setSermons(data.data.recent?.sermons || []);
         setMediaClips(data.data.recent?.mediaClips || []);
         setAudioMessages(data.data.recent?.audioMessages || []);
@@ -737,20 +744,23 @@ export default function AdminDashboardPage() {
                       <div className="col-span-3">
                         <div>{volunteer.email}</div>
                         <div className="text-sm text-gray-500">
-                          {volunteer.role || (volunteer.departments && volunteer.departments.join(", ")) || "Volunteer"}
+                          {volunteer.role || (volunteer.departments?.join(", ")) || "Volunteer"}
                         </div>
                       </div>
                       <div className="col-span-2">
                         <div className="flex flex-wrap gap-1">
-                          {volunteer.skills.slice(0, 2).map((skill, i) => (
+                          {volunteer.skills?.slice(0, 2).map((skill, i) => (
                             <Badge key={i} variant="secondary" className="text-xs">
                               {skill}
                             </Badge>
                           ))}
-                          {volunteer.skills.length > 2 && (
+                          {volunteer.skills && volunteer.skills.length > 2 && (
                             <Badge variant="outline" className="text-xs">
                               +{volunteer.skills.length - 2}
                             </Badge>
+                          )}
+                          {(!volunteer.skills || volunteer.skills.length === 0) && (
+                            <span className="text-xs text-gray-500">No skills</span>
                           )}
                         </div>
                       </div>
@@ -837,8 +847,8 @@ export default function AdminDashboardPage() {
                       <div className="col-span-2 text-sm text-gray-500">
                         {new Date(sermon.date).toLocaleDateString()}
                       </div>
-                      <div className="col-span-2">{sermon.views.toLocaleString()}</div>
-                      <div className="col-span-2">{sermon.downloads.toLocaleString()}</div>
+                      <div className="col-span-2">{(sermon.views || 0).toLocaleString()}</div>
+                      <div className="col-span-2">{(sermon.downloads || 0).toLocaleString()}</div>
                       <div className="col-span-2">
                         <Button
                           variant="ghost"
@@ -1050,149 +1060,150 @@ export default function AdminDashboardPage() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
 
-            {/* Analytics Tab */}
-            <TabsContent value="analytics" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Testimonies by Category */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Testimonies by Category</CardTitle>
-                    <CardDescription>Distribution of testimonies across categories</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-80">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={formatTestimonyData()}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={false}
-                            label={(entry) => `${entry.name}: ${entry.value}`}
-                            outerRadius={80}
-                            fill="#8884d8"
-                            dataKey="value"
-                          >
-                            {formatTestimonyData().map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip />
-                          <Legend />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Testimonies by Category */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Testimonies by Category</CardTitle>
+                  <CardDescription>Distribution of testimonies across categories</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={formatTestimonyData()}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={(entry) => `${entry.name}: ${entry.value}`}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {formatTestimonyData().map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
 
-                {/* Engagement Line Chart */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Engagement Overview</CardTitle>
-                    <CardDescription>Platform engagement over time</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-80">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={formatTrendData()}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                          <XAxis dataKey="date" />
-                          <YAxis />
-                          <Tooltip />
-                          <Legend />
-                          <Line
-                            type="monotone"
-                            dataKey="total"
-                            stroke={CHART_COLORS.purple}
-                            strokeWidth={2}
-                            dot={{ r: 4 }}
-                            activeDot={{ r: 6 }}
-                          />
-                          <Line
-                            type="monotone"
-                            dataKey="registrations"
-                            stroke={CHART_COLORS.blue}
-                            strokeWidth={2}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              {/* Engagement Line Chart */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Engagement Overview</CardTitle>
+                  <CardDescription>Platform engagement over time</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={formatTrendData()}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line
+                          type="monotone"
+                          dataKey="total"
+                          stroke={CHART_COLORS.purple}
+                          strokeWidth={2}
+                          dot={{ r: 4 }}
+                          activeDot={{ r: 6 }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="registrations"
+                          stroke={CHART_COLORS.blue}
+                          strokeWidth={2}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
-              {/* Quick Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Content Summary</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Total Sermons</span>
-                        <span className="font-semibold">{stats.sermons.total}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Media Clips</span>
-                        <span className="font-semibold">{stats.media.total}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Audio Messages</span>
-                        <span className="font-semibold">{stats.audio.total}</span>
-                      </div>
+            {/* Quick Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Content Summary</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Total Sermons</span>
+                      <span className="font-semibold">{stats.sermons.total}</span>
                     </div>
-                  </CardContent>
-                </Card>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Media Clips</span>
+                      <span className="font-semibold">{stats.media.total}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Audio Messages</span>
+                      <span className="font-semibold">{stats.audio.total}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Engagement Metrics</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Total Views</span>
-                        <span className="font-semibold">
-                          {(stats.sermons.totalViews + stats.media.totalViews).toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Audio Plays</span>
-                        <span className="font-semibold">{stats.audio.totalPlays.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Total Engagement</span>
-                        <span className="font-semibold">{stats.overview.totalEngagement.toLocaleString()}</span>
-                      </div>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Engagement Metrics</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Total Views</span>
+                      <span className="font-semibold">
+                        {(stats.sermons.totalViews + stats.media.totalViews).toLocaleString()}
+                      </span>
                     </div>
-                  </CardContent>
-                </Card>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Audio Plays</span>
+                      <span className="font-semibold">{stats.audio.totalPlays.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Total Engagement</span>
+                      <span className="font-semibold">{stats.overview.totalEngagement.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">People Overview</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Total People</span>
-                        <span className="font-semibold">{stats.overview.totalPeople}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Active Volunteers</span>
-                        <span className="font-semibold">{stats.volunteers.active}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Total Participants</span>
-                        <span className="font-semibold">{stats.participants.total}</span>
-                      </div>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">People Overview</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Total People</span>
+                      <span className="font-semibold">{stats.overview.totalPeople}</span>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Active Volunteers</span>
+                      <span className="font-semibold">{stats.volunteers.active}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Total Participants</span>
+                      <span className="font-semibold">{stats.participants.total}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
         </Tabs>
       </main>
     </div>

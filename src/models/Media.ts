@@ -4,6 +4,7 @@ export interface IMedia extends Document {
     title: string;
     description?: string;
     type: "short" | "clip" | "reel";
+    category?: string;
     url: string;
     thumbnailUrl?: string;
     duration?: string;
@@ -26,6 +27,9 @@ const MediaSchema = new Schema<IMedia>(
             type: String,
             enum: ["short", "clip", "reel"],
             required: true,
+        },
+        category: {
+            type: String,
         },
         url: {
             type: String,
