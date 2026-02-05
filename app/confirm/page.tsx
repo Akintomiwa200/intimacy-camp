@@ -66,11 +66,31 @@ function ConfirmContent() {
   const [isCheckingIn, setIsCheckingIn] = useState<string | null>(null);
 
   useEffect(() => {
-    if (token) {
-      // Since registrations are auto-confirmed, show success message
-      setStatus("success");
-      setMessage("Registration confirmed successfully!");
-    }
+    const performAutoCheckIn = async () => {
+      if (token) {
+        setStatus("loading");
+        try {
+          const response = await fetch("/api/register/confirm", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ registrationCode: token, action: "check-in" }),
+          });
+          const data = await response.json();
+          if (data.success) {
+            setStatus("success");
+            setMessage("Check-in successful! Welcome to Intimacy Camp.");
+          } else {
+            setStatus("error");
+            setMessage(data.error || "Failed to check in.");
+          }
+        } catch (error) {
+          console.error("Auto check-in error:", error);
+          setStatus("error");
+          setMessage("Something went wrong during check-in.");
+        }
+      }
+    };
+    performAutoCheckIn();
   }, [token]);
 
   const handleSearch = async () => {
@@ -485,22 +505,12 @@ function ConfirmContent() {
 
                                 {/* Action Buttons */}
                                 <div className="flex flex-col gap-2 mt-2">
-                                  {/* Always show Confirmed status (no action needed) */}
-                                  <Button
-                                    disabled
-                                    variant="outline"
-                                    className="border-green-200 bg-green-50 text-green-700"
-                                  >
-                                    <CheckCircle className="w-4 h-4 mr-2" />
-                                    Confirmed
-                                  </Button>
-
-                                  {/* Check-in button */}
+                                  {/* Action button */}
                                   {!reg.checkInStatus ? (
                                     <Button
                                       onClick={() => handleCheckIn(reg._id, reg.registrationCode)}
                                       disabled={isCheckingIn === reg._id}
-                                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white w-full sm:w-auto"
                                     >
                                       {isCheckingIn === reg._id ? (
                                         <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -510,14 +520,10 @@ function ConfirmContent() {
                                       Check In
                                     </Button>
                                   ) : (
-                                    <Button
-                                      disabled
-                                      variant="outline"
-                                      className="border-emerald-200 bg-emerald-50 text-emerald-700"
-                                    >
+                                    <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 py-2 px-4 text-sm">
                                       <CheckSquare className="w-4 h-4 mr-2" />
                                       Checked In
-                                    </Button>
+                                    </Badge>
                                   )}
                                 </div>
                               </div>

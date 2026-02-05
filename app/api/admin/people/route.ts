@@ -294,7 +294,7 @@ export async function POST(request: NextRequest) {
     if (body.action === 'confirm' && body.ids && Array.isArray(body.ids)) {
       const result = await updateInBothCollections(
         { _id: { $in: body.ids } },
-        { $set: { isConfirmed: true, status: 'active' } }
+        { $set: { isConfirmed: true, status: 'active', checkInStatus: true, checkInTime: new Date() } }
       );
       return NextResponse.json({
         success: true,

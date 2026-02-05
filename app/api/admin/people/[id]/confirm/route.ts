@@ -55,14 +55,18 @@ export async function POST(
 
         user.isConfirmed = true;
         user.status = 'active';
+        user.checkInStatus = true;
+        user.checkInTime = new Date();
         await user.save();
 
         return NextResponse.json({
             success: true,
-            message: 'Registration confirmed successfully',
+            message: 'Registration confirmed and checked in successfully',
             data: {
                 id: user._id,
                 isConfirmed: user.isConfirmed,
+                checkInStatus: user.checkInStatus,
+                checkInTime: user.checkInTime,
                 status: user.status
             }
         });

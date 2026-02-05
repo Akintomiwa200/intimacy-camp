@@ -326,8 +326,8 @@ export default function AdvancedPeoplePage() {
     }
 
     try {
-      let endpoint = '/api/admin/people';
-      let method = 'POST';
+      const endpoint = '/api/admin/people';
+      const method = 'POST';
 
       switch (action) {
         case "confirm":
@@ -432,46 +432,9 @@ export default function AdvancedPeoplePage() {
     }
   };
 
-  const confirmPerson = async (personId: string) => {
-    try {
-      const response = await fetch(`/api/admin/people/${personId}/confirm`, {
-        method: 'POST'
-      });
+  // Removed confirmPerson as all registrations are auto-confirmed.
+  // Using checkInPerson as the primary arrival action.
 
-      if (!response.ok) throw new Error('Failed to confirm');
-
-      const data = await response.json();
-
-      if (data.success) {
-        // Update local state
-        setPeople(prev => prev.map(p =>
-          p._id === personId ? { ...p, isConfirmed: true, status: 'active' } : p
-        ));
-
-        // Recalculate stats
-        setStats(prev => ({
-          ...prev,
-          confirmed: prev.confirmed + 1,
-          pending: prev.pending - 1
-        }));
-
-        // Real-time update
-        if (realTimeEnabled && wsRef.current?.readyState === WebSocket.OPEN) {
-          wsRef.current.send(JSON.stringify({
-            type: 'confirmation_update',
-            data: { personId, isConfirmed: true }
-          }));
-        }
-
-        toast.success('Registration confirmed');
-      } else {
-        throw new Error(data.error || 'Failed to confirm');
-      }
-    } catch (error) {
-      console.error('Failed to confirm registration:', error);
-      toast.error('Failed to confirm registration');
-    }
-  };
 
   const checkInPerson = async (personId: string) => {
     try {
@@ -702,15 +665,7 @@ export default function AdvancedPeoplePage() {
                     {selectedPeople.length} selected
                   </span>
                   <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleBulkAction("confirm")}
-                      className="border-gray-300 dark:border-gray-700"
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Confirm
-                    </Button>
+
                     <Button
                       size="sm"
                       variant="outline"
@@ -862,26 +817,9 @@ export default function AdvancedPeoplePage() {
                           </Tooltip>
                         </TooltipProvider>
 
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                disabled={person.isConfirmed}
-                                onClick={() => !person.isConfirmed && confirmPerson(person._id)}
-                                className={`h-8 w-8 p-0 ${person.isConfirmed ? 'hover:bg-transparent opacity-50 cursor-not-allowed' : 'hover:bg-green-100 dark:hover:bg-green-900/20'}`}
-                              >
-                                <CheckCircle className={`w-4 h-4 ${person.isConfirmed ? 'text-gray-400' : 'text-green-600'}`} />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent className="bg-gray-900 dark:bg-gray-800 text-gray-100 dark:text-gray-300">
-                              <p>{person.isConfirmed ? "Already Confirmed" : "Confirm Registration"}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
 
-                        {!person.checkInStatus && person.isConfirmed && (
+
+                        {!person.checkInStatus && (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -1015,18 +953,7 @@ export default function AdvancedPeoplePage() {
                 >
                   Close
                 </Button>
-                {!viewPerson.isConfirmed && (
-                  <Button
-                    onClick={() => {
-                      confirmPerson(viewPerson._id);
-                      setViewPerson(null);
-                    }}
-                    className="flex-1 bg-green-600 hover:bg-green-700"
-                  >
-                    Confirm
-                  </Button>
-                )}
-                {!viewPerson.checkInStatus && viewPerson.isConfirmed && (
+                {!viewPerson.checkInStatus && (
                   <Button
                     onClick={() => {
                       checkInPerson(viewPerson._id);
