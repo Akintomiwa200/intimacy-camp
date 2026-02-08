@@ -23,7 +23,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                         "placeholder:text-gray-400",
                         "focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent",
                         "disabled:cursor-not-allowed disabled:opacity-50",
-                        "dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500",
+                        "dark:border-gray-700 dark:placeholder:text-gray-500",
                         error && "border-red-500 focus:ring-red-500",
                         className
                     )}

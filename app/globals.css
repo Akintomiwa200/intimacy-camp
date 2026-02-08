@@ -137,12 +137,14 @@
   textarea,
   select {
     color: var(--color-text-primary-light);
+    background-color: white;
   }
 
   .dark input,
   .dark textarea,
   .dark select {
-    color: var(--color-text-primary-dark);
+    color: var(--color-text-primary-light);
+    background-color: white;
   }
 
   /* Placeholder Text */
