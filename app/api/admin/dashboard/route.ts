@@ -12,12 +12,14 @@ export async function GET(req: NextRequest) {
   try {
     await connectToDatabase();
 
+    // Get URL parameters for pagination
+    const url = new URL(req.url);
+    const participantsLimit = parseInt(url.searchParams.get('participantsLimit') || '50');
+    const volunteersLimit = parseInt(url.searchParams.get('volunteersLimit') || '50');
+    const sermonsLimit = parseInt(url.searchParams.get('sermonsLimit') || '10');
+    const testimoniesLimit = parseInt(url.searchParams.get('testimoniesLimit') || '20');
 
-    // Get models
-    // AudioMessage is defined inline above if not exists
-    // const AudioMessage = mongoose.models.AudioMessage; // This line is no longer needed as AudioMessage is imported directly
-
-    // Fetch all data in parallel
+    // Fetch all data in parallel with proper sorting
     const [
       participants,
       volunteers,
@@ -26,17 +28,35 @@ export async function GET(req: NextRequest) {
       audioMessages,
       testimonies
     ] = await Promise.all([
-      Participant.find({}).sort({ createdAt: -1 }).lean(),
-      Volunteer.find({}).sort({ createdAt: -1 }).lean(),
-      Sermon.find({}).sort({ date: -1 }).limit(5).lean(),
-      Media.find({}).sort({ createdAt: -1 }).limit(10).lean(),
-      AudioMessage.find({}).sort({ createdAt: -1 }).limit(5).lean(),
-      Testimony.find({}).sort({ createdAt: -1 }).limit(10).lean()
+      Participant.find({})
+        .sort({ createdAt: -1 }) // Newest first
+        .limit(participantsLimit)
+        .lean(),
+      Volunteer.find({})
+        .sort({ createdAt: -1 }) // Newest first
+        .limit(volunteersLimit)
+        .lean(),
+      Sermon.find({})
+        .sort({ date: -1, createdAt: -1 }) // Newest sermons first
+        .limit(sermonsLimit)
+        .lean(),
+      Media.find({})
+        .sort({ createdAt: -1 }) // Newest media first
+        .limit(50)
+        .lean(),
+      AudioMessage.find({})
+        .sort({ createdAt: -1 }) // Newest audio first
+        .limit(50)
+        .lean(),
+      Testimony.find({})
+        .sort({ createdAt: -1 }) // Newest testimonies first
+        .limit(testimoniesLimit)
+        .lean()
     ]);
 
     // Stats for all modules
-    const participantsTotal = participants.length;
-    const volunteersTotal = volunteers.length;
+    const participantsTotal = await Participant.countDocuments();
+    const volunteersTotal = await Volunteer.countDocuments();
     const sermonsTotal = await Sermon.countDocuments();
     const mediaTotal = await Media.countDocuments();
     const audioTotal = await AudioMessage.countDocuments();
@@ -48,13 +68,15 @@ export async function GET(req: NextRequest) {
       AudioMessage.aggregate([{ $group: { _id: null, total: { $sum: "$plays" } } }])
     ]);
 
+    // Get today's date for new participants
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     const stats = {
       participants: {
         total: participantsTotal,
         newToday: await Participant.countDocuments({
-          createdAt: {
-            $gte: new Date(new Date().setHours(0, 0, 0, 0))
-          }
+          createdAt: { $gte: today }
         }),
         growth: await getGrowthRate(Participant, 'participants')
       },
@@ -83,7 +105,6 @@ export async function GET(req: NextRequest) {
         pending: await Testimony.countDocuments({ isApproved: false }),
         approved: await Testimony.countDocuments({ isApproved: true })
       },
-      // FIX: overview moved INSIDE stats object
       overview: {
         totalPeople: participantsTotal + volunteersTotal,
         totalContent: sermonsTotal + mediaTotal + audioTotal,
@@ -145,14 +166,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        stats, // Now includes overview inside
+        stats,
         recent: {
-          participants: participants.slice(0, 5),
-          volunteers: volunteers.slice(0, 5),
+          participants, // Now returns ALL participants (limited by participantsLimit)
+          volunteers, // Now returns ALL volunteers (limited by volunteersLimit)
           sermons,
           mediaClips,
           audioMessages,
-          testimonies: testimonies.slice(0, 5)
+          testimonies // Now returns ALL testimonies (limited by testimoniesLimit)
         },
         analytics: {
           registrationTrends,
@@ -234,20 +255,20 @@ async function getRecentActivities() {
     if (model) {
       const recent = await model.find({})
         .sort({ createdAt: -1 })
-        .limit(2)
+        .limit(3)
         .lean();
 
       recent.forEach((item: any) => {
-        // FIX: Use _id instead of id
         let title = item.title || item.name;
         if (!title && item.firstName && item.lastName) {
           title = `${item.firstName} ${item.lastName}`;
         }
 
         activities.push({
-          _id: item._id.toString(), // CHANGED FROM id TO _id
+          _id: item._id.toString(),
           type: modelName.toLowerCase(),
-          action: modelName === 'Testimony' ? 'submitted' : 'added',
+          action: modelName === 'Testimony' ? 'submitted' : 
+                  modelName === 'Sermon' ? 'published' : 'added',
           title: title || `New ${modelName}`,
           timestamp: item.createdAt,
         });
@@ -257,7 +278,7 @@ async function getRecentActivities() {
 
   return activities.sort((a, b) =>
     new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  ).slice(0, 10);
+  ).slice(0, 15);
 }
 
 async function getMediaByCategory() {
@@ -274,7 +295,6 @@ async function getMediaByCategory() {
     { $sort: { totalViews: -1 } }
   ]);
 
-  // Ensure all categories have a name
   return result.map(item => ({
     _id: item._id || 'Uncategorized',
     count: item.count,

@@ -94,37 +94,37 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const skip = (page - 1) * limit;
 
-    // Build query based on filters
+    // Build query for people listing
     const query: any = {};
-    const baseQuery: any = {}; // For specific type queries
-
+    
+    // Get filter parameters
     const type = searchParams.get('type');
     const search = searchParams.get('search');
     const isConfirmed = searchParams.get('confirmed');
     const isCheckedIn = searchParams.get('checkedIn');
     const status = searchParams.get('status');
 
+    // Apply type filter for listing
     if (type && type !== 'all' && type !== 'staff') {
       query.type = type;
-      baseQuery.type = type;
     }
 
+    // Apply status filter for listing
     if (status && status !== 'all') {
       query.status = status;
-      baseQuery.status = status;
     }
 
+    // Apply confirmation filter for listing
     if (isConfirmed && isConfirmed !== 'all') {
       query.isConfirmed = isConfirmed === 'true';
-      baseQuery.isConfirmed = isConfirmed === 'true';
     }
 
+    // Apply check-in filter for listing
     if (isCheckedIn && isCheckedIn !== 'all') {
       query.checkInStatus = isCheckedIn === 'true';
-      baseQuery.checkInStatus = isCheckedIn === 'true';
     }
 
-    // Search functionality
+    // Search functionality for listing
     if (search) {
       query.$or = [
         { firstName: { $regex: search, $options: 'i' } },
@@ -140,45 +140,66 @@ export async function GET(request: NextRequest) {
     let total = 0;
 
     if (type === 'participant') {
+      // Only fetch from participants
       people = await Participant.find(query)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .lean();
       total = await Participant.countDocuments(query);
-    } else if (type === 'volunteer') {
+    } 
+    else if (type === 'volunteer') {
+      // Only fetch from volunteers
       people = await Volunteer.find(query)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .lean();
       total = await Volunteer.countDocuments(query);
-    } else if (type === 'staff') {
-      // Handle staff separately if needed
-      const staffParticipants = await Participant.find({ ...query, isLeader: 'yes' })
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean();
-      const staffVolunteers = await Volunteer.find({ ...query, isLeader: 'yes' })
+    } 
+    else if (type === 'staff') {
+      // Fetch staff (leaders) from both collections
+      const staffQuery = { ...query, isLeader: 'yes' };
+      const staffParticipants = await Participant.find(staffQuery)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(Math.ceil(limit / 2))
         .lean();
+      const staffVolunteers = await Volunteer.find(staffQuery)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Math.ceil(limit / 2))
+        .lean();
+      
       people = [...staffParticipants, ...staffVolunteers]
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, limit);
-      total = await Participant.countDocuments({ ...query, isLeader: 'yes' }) +
-        await Volunteer.countDocuments({ ...query, isLeader: 'yes' });
-    } else {
-      // Get from both collections with proper handling
+      
+      total = await Participant.countDocuments(staffQuery) + 
+              await Volunteer.countDocuments(staffQuery);
+    } 
+    else {
+      // Fetch both participants and volunteers (type = 'all' or undefined)
+      // Create separate queries without type filter for each collection
+      const participantQuery = { ...query };
+      const volunteerQuery = { ...query };
+      
+      // Remove type from queries since we're querying each collection specifically
+      delete participantQuery.type;
+      delete volunteerQuery.type;
+      
+      // For participants, ensure we only get participant type
+      participantQuery.type = 'participant';
+      // For volunteers, ensure we only get volunteer type
+      volunteerQuery.type = 'volunteer';
+      
       const [participants, volunteers] = await Promise.all([
-        Participant.find({ ...query, type: 'participant' })
+        Participant.find(participantQuery)
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(Math.ceil(limit / 2))
           .lean(),
-        Volunteer.find({ ...query, type: 'volunteer' })
+        Volunteer.find(volunteerQuery)
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(Math.ceil(limit / 2))
@@ -190,39 +211,76 @@ export async function GET(request: NextRequest) {
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, limit);
 
-      // Get total count
-      const [participantCount, volunteerCount] = await Promise.all([
-        Participant.countDocuments({ ...query, type: 'participant' }),
-        Volunteer.countDocuments({ ...query, type: 'volunteer' })
-      ]);
+      // Get total counts for stats
+      const participantCount = await Participant.countDocuments(participantQuery);
+      const volunteerCount = await Volunteer.countDocuments(volunteerQuery);
       total = participantCount + volunteerCount;
     }
 
+    // Build stats query - THIS IS THE CRITICAL FIX
+    // Create a clean stats query without type restrictions for totals
+    const statsQuery: any = {};
+    
+    // Only apply filters that should affect stats
+    if (status && status !== 'all') {
+      statsQuery.status = status;
+    }
+    if (isConfirmed && isConfirmed !== 'all') {
+      statsQuery.isConfirmed = isConfirmed === 'true';
+    }
+    if (isCheckedIn && isCheckedIn !== 'all') {
+      statsQuery.checkInStatus = isCheckedIn === 'true';
+    }
+    
+    // For search in stats, we need to count both collections
+    let statsParticipantQuery: any = { ...statsQuery, type: 'participant' };
+    let statsVolunteerQuery: any = { ...statsQuery, type: 'volunteer' };
+    
+    // Apply search to stats queries if needed
+    if (search) {
+      const searchOr = [
+        { firstName: { $regex: search, $options: 'i' } },
+        { lastName: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { registrationCode: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } }
+      ];
+      statsParticipantQuery.$or = searchOr;
+      statsVolunteerQuery.$or = searchOr;
+    }
+    
     // Get stats
-    const [participantCount, volunteerCount, confirmedCount, pendingCount,
-      checkedInCount, todayCount, staffCount] = await Promise.all([
-        Participant.countDocuments({ ...baseQuery, type: 'participant' }),
-        Volunteer.countDocuments({ ...baseQuery, type: 'volunteer' }),
-        Participant.countDocuments({ ...baseQuery, isConfirmed: true }) +
-        Volunteer.countDocuments({ ...baseQuery, isConfirmed: true }),
-        Participant.countDocuments({ ...baseQuery, isConfirmed: false }) +
-        Volunteer.countDocuments({ ...baseQuery, isConfirmed: false }),
-        Participant.countDocuments({ ...baseQuery, checkInStatus: true }) +
-        Volunteer.countDocuments({ ...baseQuery, checkInStatus: true }),
-        (async () => {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          return await Participant.countDocuments({
-            ...baseQuery,
-            createdAt: { $gte: today }
-          }) + await Volunteer.countDocuments({
-            ...baseQuery,
-            createdAt: { $gte: today }
-          });
-        })(),
-        Participant.countDocuments({ ...baseQuery, isLeader: 'yes' }) +
-        Volunteer.countDocuments({ ...baseQuery, isLeader: 'yes' })
-      ]);
+    const [
+      participantCount,
+      volunteerCount,
+      confirmedCount,
+      pendingCount,
+      checkedInCount,
+      todayCount,
+      staffCount
+    ] = await Promise.all([
+      Participant.countDocuments(statsParticipantQuery),
+      Volunteer.countDocuments(statsVolunteerQuery),
+      Participant.countDocuments({ ...statsParticipantQuery, isConfirmed: true }) +
+      Volunteer.countDocuments({ ...statsVolunteerQuery, isConfirmed: true }),
+      Participant.countDocuments({ ...statsParticipantQuery, isConfirmed: false }) +
+      Volunteer.countDocuments({ ...statsVolunteerQuery, isConfirmed: false }),
+      Participant.countDocuments({ ...statsParticipantQuery, checkInStatus: true }) +
+      Volunteer.countDocuments({ ...statsVolunteerQuery, checkInStatus: true }),
+      (async () => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return await Participant.countDocuments({
+          ...statsParticipantQuery,
+          createdAt: { $gte: today }
+        }) + await Volunteer.countDocuments({
+          ...statsVolunteerQuery,
+          createdAt: { $gte: today }
+        });
+      })(),
+      Participant.countDocuments({ ...statsParticipantQuery, isLeader: 'yes' }) +
+      Volunteer.countDocuments({ ...statsVolunteerQuery, isLeader: 'yes' })
+    ]);
 
     // Format response data
     const formattedPeople = people.map((person: any) => ({
@@ -254,7 +312,7 @@ export async function GET(request: NextRequest) {
           pages: Math.ceil(total / limit)
         },
         stats: {
-          total,
+          total: participantCount + volunteerCount,
           participants: participantCount,
           volunteers: volunteerCount,
           staff: staffCount,
