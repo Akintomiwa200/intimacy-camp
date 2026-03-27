@@ -158,56 +158,70 @@ export default function AdvancedPeoplePage() {
     };
   }, []);
 
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
+ const fetchData = useCallback(async () => {
+  try {
+    setLoading(true);
 
-      const params = new URLSearchParams();
-      if (selectedType && selectedType !== 'all') params.set('type', selectedType);
+    const params = new URLSearchParams();
+    if (selectedType && selectedType !== 'all') params.set('type', selectedType);
+    if (searchQuery) params.set('search', searchQuery);
+    if (selectedStatus && selectedStatus !== 'all') params.set('status', selectedStatus);
+    
+    // Set a high limit to get all data initially
+    params.set('limit', '500'); // Get up to 500 records
+    
+    const response = await fetch(`/api/admin/people?${params.toString()}`);
+    if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
 
-      const response = await fetch(`/api/admin/people?${params.toString()}`);
-      if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
+    const data = await response.json();
 
-      const data = await response.json();
+    if (data.success) {
+      const newPeople = data.data.people || [];
 
-      if (data.success) {
-        const newPeople = data.data.people || [];
-
-        if (!Array.isArray(newPeople)) {
-          console.error('Expected array but got:', newPeople);
-          setPeople([]);
-          setStats(calculateStats([]));
-          return;
-        }
-
-        setPeople(newPeople);
-
-        // Calculate stats from the actual data we received
-        const calculatedStats = calculateStats(newPeople);
-        setStats(calculatedStats);
-
-        setLastUpdate(new Date());
-
-        // Debug logging
-        console.log('Fetched data:', {
-          total: newPeople.length,
-          calculatedStats,
-          samplePerson: newPeople[0]
-        });
-
-      } else {
-        throw new Error(data.error || 'Failed to fetch data');
+      if (!Array.isArray(newPeople)) {
+        console.error('Expected array but got:', newPeople);
+        setPeople([]);
+        setStats(calculateStats([]));
+        return;
       }
-    } catch (error) {
-      console.error("Failed to fetch data:", error);
-      toast.error("Failed to fetch data");
-      setPeople([]);
-      setStats(calculateStats([]));
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedType, calculateStats]); // Removed selectedStatus dependency
 
+      // Ensure people are sorted by createdAt descending (newest first)
+      const sortedPeople = [...newPeople].sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      
+      setPeople(sortedPeople);
+
+      // Calculate stats from the actual data we received
+      const calculatedStats = calculateStats(sortedPeople);
+      setStats(calculatedStats);
+
+      setLastUpdate(new Date());
+
+      // Debug logging
+      console.log('Fetched data:', {
+        total: sortedPeople.length,
+        calculatedStats,
+        samplePerson: sortedPeople[0],
+        sampleDate: sortedPeople[0]?.createdAt
+      });
+
+    } else {
+      throw new Error(data.error || 'Failed to fetch data');
+    }
+  } catch (error) {
+    console.error("Failed to fetch data:", error);
+    toast.error("Failed to fetch data");
+    setPeople([]);
+    setStats(calculateStats([]));
+  } finally {
+    setLoading(false);
+  }
+}, [selectedType, selectedStatus, searchQuery, calculateStats]);
+
+
+
+ 
   // Real-time WebSocket connection
   const setupRealTimeConnection = useCallback(() => {
     if (!realTimeEnabled) {

@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const limit = parseInt(searchParams.get('limit') || '200'); // Increased default limit
     const skip = (page - 1) * limit;
 
     // Build query for people listing
@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
     if (type === 'participant') {
       // Only fetch from participants
       people = await Participant.find(query)
-        .sort({ createdAt: -1 })
+        .sort({ createdAt: -1 }) // Newest first
         .skip(skip)
         .limit(limit)
         .lean();
@@ -151,7 +151,7 @@ export async function GET(request: NextRequest) {
     else if (type === 'volunteer') {
       // Only fetch from volunteers
       people = await Volunteer.find(query)
-        .sort({ createdAt: -1 })
+        .sort({ createdAt: -1 }) // Newest first
         .skip(skip)
         .limit(limit)
         .lean();
@@ -163,12 +163,12 @@ export async function GET(request: NextRequest) {
       const staffParticipants = await Participant.find(staffQuery)
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(Math.ceil(limit / 2))
+        .limit(limit)
         .lean();
       const staffVolunteers = await Volunteer.find(staffQuery)
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(Math.ceil(limit / 2))
+        .limit(limit)
         .lean();
       
       people = [...staffParticipants, ...staffVolunteers]
@@ -195,14 +195,14 @@ export async function GET(request: NextRequest) {
       
       const [participants, volunteers] = await Promise.all([
         Participant.find(participantQuery)
-          .sort({ createdAt: -1 })
+          .sort({ createdAt: -1 }) // Newest first
           .skip(skip)
-          .limit(Math.ceil(limit / 2))
+          .limit(limit)
           .lean(),
         Volunteer.find(volunteerQuery)
-          .sort({ createdAt: -1 })
+          .sort({ createdAt: -1 }) // Newest first
           .skip(skip)
-          .limit(Math.ceil(limit / 2))
+          .limit(limit)
           .lean()
       ]);
 
@@ -217,8 +217,7 @@ export async function GET(request: NextRequest) {
       total = participantCount + volunteerCount;
     }
 
-    // Build stats query - THIS IS THE CRITICAL FIX
-    // Create a clean stats query without type restrictions for totals
+    // Build stats query
     const statsQuery: any = {};
     
     // Only apply filters that should affect stats
@@ -286,12 +285,11 @@ export async function GET(request: NextRequest) {
     const formattedPeople = people.map((person: any) => ({
       ...person,
       _id: person._id.toString(),
-      // Add fallback fields for frontend compatibility
       status: person.status || (person.isConfirmed ? 'active' : 'pending'),
       type: person.type || 'participant',
       checkInStatus: person.checkInStatus || person.attendanceChecked || false,
       checkInTime: person.checkInTime || person.checkedInAt || null,
-      // Ensure required fields exist
+      createdAt: person.createdAt,
       campDate: person.campDate || null,
       emergencyContact: person.emergencyContact || null,
       medicalInfo: person.medicalInfo || null,
@@ -332,6 +330,8 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+
 
 export async function POST(request: NextRequest) {
   try {
